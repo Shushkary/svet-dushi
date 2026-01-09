@@ -621,8 +621,8 @@
         .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--amber); }
         .stat-label { font-size: 0.7rem; color: var(--text-tertiary); margin-top: 2px; }
         
-        /* Планетарный бейдж */
-        .planet-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 16px; font-size: 0.75rem; font-weight: 500; }
+        /* Природный бейдж */
+        .theme-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 16px; font-size: 0.75rem; font-weight: 500; }
         
         /* Темперамент */
         .temperament-card { padding: 0.75rem; border-radius: 12px; text-align: center; cursor: pointer; border: 2px solid transparent; }
@@ -795,6 +795,21 @@
                     progress.streak = progress.completedDays.length;
                 }
                 DB.setNutritionProgress(progress);
+            },
+            // PHQ-9 История
+            getPhqHistory: () => DB.get('phq_history', []),
+            addPhqResult: (score) => {
+                const history = DB.getPhqHistory();
+                history.push({ score, date: new Date().toISOString() });
+                DB.set('phq_history', history);
+                DB.set('last_phq_date', new Date().toISOString());
+            },
+            getLastPhqDate: () => DB.get('last_phq_date', null),
+            shouldShowPhqReminder: () => {
+                const lastDate = DB.getLastPhqDate();
+                if (!lastDate) return true;
+                const daysSince = Math.floor((Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24));
+                return daysSince >= 2;
             }
         };
 
@@ -923,7 +938,7 @@
                         element: 'Воздух',
                         color: '#FCD34D',
                         strengths: ['Оптимизм и жизнерадостность', 'Лёгкость в общении', 'Быстрая адаптация', 'Творческое мышление'],
-                        challenges: ['Поверхностность', 'Непостоянство', 'Трудности с глубиной'],
+                        challenges: ['Развивайте способность погружаться глубже в темы и отношения', 'Практикуйте завершение начатых дел — это приносит удовлетворение', 'Находите ценность в тишине и уединении'],
                         practices: ['Акварель', 'Прогулки', 'Дыхательные практики'],
                         tip: 'Развивайте глубину через дневник и медитацию'
                     },
@@ -933,7 +948,7 @@
                         element: 'Огонь',
                         color: '#F97316',
                         strengths: ['Энергичность и решительность', 'Лидерские качества', 'Целеустремлённость', 'Способность вести за собой'],
-                        challenges: ['Вспыльчивость', 'Нетерпеливость', 'Склонность к выгоранию'],
+                        challenges: ['Учитесь делать паузы — они усиливают ваши решения', 'Терпение — это суперсила, которую вы можете развить', 'Восстановление так же важно, как и действие'],
                         practices: ['Активные прогулки', 'Баня', 'Практики присутствия'],
                         tip: 'Практикуйте паузы и осознанность для баланса'
                     },
@@ -943,7 +958,7 @@
                         element: 'Земля',
                         color: '#8B5CF6',
                         strengths: ['Глубина чувств', 'Творческая чувствительность', 'Эмпатия', 'Способность к рефлексии'],
-                        challenges: ['Склонность к депрессии', 'Чрезмерная самокритика', 'Трудности с лёгкостью'],
+                        challenges: ['Ваша глубина — дар; добавляйте к ней свет и движение', 'Относитесь к себе с той же добротой, что и к другим', 'Позволяйте себе моменты лёгкости и игры'],
                         practices: ['Свет', 'Тепло', 'Благодарность', 'Чудо дня'],
                         tip: 'Добавляйте света и тепла, практикуйте благодарность'
                     },
@@ -953,7 +968,7 @@
                         element: 'Вода',
                         color: '#06B6D4',
                         strengths: ['Спокойствие и уравновешенность', 'Надёжность', 'Терпение', 'Устойчивость к стрессу'],
-                        challenges: ['Инертность', 'Медлительность', 'Трудности с инициативой'],
+                        challenges: ['Ваш темп — это сила; иногда стоит добавить ускорения', 'Новые начинания приносят свежую энергию', 'Маленькие шаги каждый день создают большие перемены'],
                         practices: ['Активные прогулки', 'Массаж', 'Дыхание'],
                         tip: 'Добавляйте активности и разнообразия в жизнь'
                     }
@@ -969,14 +984,14 @@
                 melancholic: { id: 'melancholic', name: 'Меланхолик', element: 'Земля', icon: '🌍', color: '#6B5B8C', practices: ['light_morning', 'color_gold'], description: 'Земной, глубокий темперамент' },
                 phlegmatic: { id: 'phlegmatic', name: 'Флегматик', element: 'Вода', icon: '💧', color: '#4A6FA5', practices: ['warmth_tea', 'warmth_footbath'], description: 'Водный, спокойный темперамент' }
             },
-            planetaryDays: {
-                0: { planet: 'Солнце', name: 'Вс', icon: '☀️', color: '#F6C445', oils: ['апельсин', 'ладан', 'бергамот'], oilEffect: 'Радость и свет' },
-                1: { planet: 'Луна', name: 'Пн', icon: '🌙', color: '#C4C4C4', oils: ['лаванда', 'ромашка', 'мелисса'], oilEffect: 'Покой и сон' },
-                2: { planet: 'Марс', name: 'Вт', icon: '♂️', color: '#DC2626', oils: ['розмарин', 'имбирь'], oilEffect: 'Энергия и воля' },
-                3: { planet: 'Меркурий', name: 'Ср', icon: '☿️', color: '#F59E0B', oils: ['мята', 'эвкалипт', 'лимон'], oilEffect: 'Ясность мысли' },
-                4: { planet: 'Юпитер', name: 'Чт', icon: '♃', color: '#3B82F6', oils: ['кедр', 'сандал', 'пихта'], oilEffect: 'Мудрость' },
-                5: { planet: 'Венера', name: 'Пт', icon: '♀️', color: '#10B981', oils: ['роза', 'герань'], oilEffect: 'Гармония и любовь' },
-                6: { planet: 'Сатурн', name: 'Сб', icon: '♄', color: '#1F2937', oils: ['кипарис', 'можжевельник'], oilEffect: 'Глубина' }
+            naturalDays: {
+                0: { theme: 'Свет', name: 'Вс', icon: '☀️', color: '#F6C445', oils: ['апельсин', 'ладан', 'бергамот'], oilEffect: 'Радость и свет' },
+                1: { theme: 'Вода', name: 'Пн', icon: '💧', color: '#60A5FA', oils: ['лаванда', 'ромашка', 'мелисса'], oilEffect: 'Покой и обновление' },
+                2: { theme: 'Огонь', name: 'Вт', icon: '🔥', color: '#DC2626', oils: ['розмарин', 'имбирь'], oilEffect: 'Энергия и сила' },
+                3: { theme: 'Воздух', name: 'Ср', icon: '🌬️', color: '#F59E0B', oils: ['мята', 'эвкалипт', 'лимон'], oilEffect: 'Ясность и лёгкость' },
+                4: { theme: 'Дерево', name: 'Чт', icon: '🌳', color: '#22C55E', oils: ['кедр', 'сандал', 'пихта'], oilEffect: 'Рост и мудрость' },
+                5: { theme: 'Цветение', name: 'Пт', icon: '🌸', color: '#EC4899', oils: ['роза', 'герань'], oilEffect: 'Гармония и красота' },
+                6: { theme: 'Земля', name: 'Сб', icon: '🪨', color: '#78716C', oils: ['кипарис', 'можжевельник'], oilEffect: 'Глубина и корни' }
             },
             oilsByMood: {
                 heavy: { oils: ['апельсин', 'грейпфрут', 'бергамот'], effect: 'Поднимают настроение' },
@@ -997,7 +1012,7 @@
                 if (hour >= 21 || hour < 3) return { name: 'Ночь', quality: 'Покой', key: 'night' };
                 return { name: 'Предрассвет', quality: 'Духовное', key: 'preDown' };
             },
-            getPlanetaryDay: () => NATURAL_WISDOM.planetaryDays[new Date().getDay()],
+            getNaturalDay: () => NATURAL_WISDOM.naturalDays[new Date().getDay()],
             analyzeStateHistory: (history) => {
                 if (!history || history.length === 0) return null;
                 const last7Days = history.filter(h => Date.now() - h.timestamp < 7 * 24 * 60 * 60 * 1000);
@@ -1226,7 +1241,7 @@
             { id: 'journal_deep', category: 'journal', title: 'Глубокое письмо', short: 'Письменное исследование', steps: ['Возьмите бумагу и ручку', 'Напишите: «Что сейчас во мне?»', 'Пишите без остановки 10 минут', 'Не редактируйте', 'Прочитайте написанное'], duration: 15, bg: '#FAF6EE', states: ['neutral', 'hopeful'] },
             
             // БАНЯ И СПА
-            { id: 'sauna', category: 'spa', title: 'Посещение бани', short: 'Глубокое прогревание тела и души', steps: ['Подготовьте эфирные масла по дню недели', 'Вс/☀️: апельсин, ладан — радость', 'Пн/🌙: лаванда, эвкалипт — покой', 'Вт/♂️: розмарин, можжевельник — сила', 'Ср/☿️: мята, лимон — ясность', 'Чт/♃: пихта, кедр — мудрость', 'Пт/♀️: роза, герань — гармония', 'Сб/♄: кипарис, сосна — очищение', 'Добавьте 5-7 капель в ковш с водой', 'Первый заход 5-7 минут — привыкание', 'Отдых 10-15 минут, пейте воду или чай', 'Второй заход 10-15 минут с веником', 'Массаж веником — от ног к голове', 'Снова отдых и питьё', 'Третий заход — созерцание и благодарность', 'После бани — тёплый травяной чай', 'Отдых минимум 30 минут'], duration: 120, bg: '#FFE8E0', states: ['heavy', 'low_energy', 'anxious', 'neutral'] },
+            { id: 'sauna', category: 'spa', title: 'Посещение бани', short: 'Глубокое прогревание тела и души', steps: ['Подготовьте эфирные масла по дню недели', 'Вс/☀️ Свет: апельсин, ладан — радость', 'Пн/💧 Вода: лаванда, эвкалипт — покой', 'Вт/🔥 Огонь: розмарин, имбирь — сила', 'Ср/🌬️ Воздух: мята, лимон — ясность', 'Чт/🌳 Дерево: пихта, кедр — рост', 'Пт/🌸 Цветение: роза, герань — гармония', 'Сб/🪨 Земля: кипарис, сосна — глубина', 'Добавьте 5-7 капель в ковш с водой', 'Первый заход 5-7 минут — привыкание', 'Отдых 10-15 минут, пейте воду или чай', 'Второй заход 10-15 минут с веником', 'Массаж веником — от ног к голове', 'Снова отдых и питьё', 'Третий заход — созерцание и благодарность', 'После бани — тёплый травяной чай', 'Отдых минимум 30 минут'], duration: 120, bg: '#FFE8E0', states: ['heavy', 'low_energy', 'anxious', 'neutral'] },
             
             { id: 'bath_full', category: 'spa', title: 'Тёплая ванна', short: 'Целительное погружение с маслами', steps: ['Наполните ванну тёплой водой (37-38°C)', 'Выберите масла по состоянию:', 'При тяжести: апельсин + бергамот', 'При тревоге: лаванда + ромашка', 'При упадке: розмарин + грейпфрут', 'Для баланса: герань + ладан', 'Смешайте 8-10 капель с эмульгатором', 'Эмульгатор: соль, сливки или мёд', 'Добавьте смесь в воду', 'Погрузитесь по плечи', 'Дышите глубоко, вдыхая аромат', 'Представьте, как тепло растворяет тяжесть', 'Побудьте 20-30 минут', 'После — укутайтесь и отдохните'], duration: 40, bg: '#FFE8E0', states: ['heavy', 'low_energy', 'anxious'] },
             
@@ -1607,7 +1622,7 @@
             const stateHistory = DB.getStateHistory();
             const hour = new Date().getHours();
             const greeting = hour < 6 ? 'Доброй ночи' : hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
-            const planetaryDay = NATURAL_WISDOM.getPlanetaryDay();
+            const naturalDay = NATURAL_WISDOM.getNaturalDay();
             const rhythm = NATURAL_WISDOM.getCurrentRhythm();
             const soulStatesRef = useRef(null);
             
@@ -1683,8 +1698,8 @@
                     )}
                     
                     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                        <span className="planet-badge" style={{ background: planetaryDay.color + '20', color: planetaryDay.color }}>
-                            {planetaryDay.icon} {planetaryDay.name}
+                        <span className="nature-badge" style={{ background: naturalDay.color + '20', color: naturalDay.color }}>
+                            {naturalDay.icon} {naturalDay.name}
                         </span>
                     </div>
 
@@ -1754,7 +1769,7 @@
                                 <div>
                                     <strong>Вечерняя ванночка</strong>
                                     <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                        Масла дня: {planetaryDay.oils.join(', ')}
+                                        Масла дня: {naturalDay.oils.join(', ')}
                                     </p>
                                 </div>
                             </div>
@@ -1787,7 +1802,7 @@
                         const saunaDay = DB.getSaunaDay();
                         const today = new Date().getDay();
                         const dayNames = ['воскресенье', 'понедельник', 'вторник', 'среду', 'четверг', 'пятницу', 'субботу'];
-                        const dayOils = planetaryDay.oils;
+                        const dayOils = naturalDay.oils;
                         
                         if (saunaDay !== null && saunaDay === today) {
                             return (
@@ -1797,7 +1812,7 @@
                                         <div>
                                             <strong>Сегодня — день бани!</strong>
                                             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                                Масла дня: {dayOils.join(', ')} — {planetaryDay.oilEffect.toLowerCase()}
+                                                Масла дня: {dayOils.join(', ')} — {naturalDay.oilEffect.toLowerCase()}
                                             </p>
                                         </div>
                                     </div>
@@ -1836,7 +1851,7 @@
 
         function DayPage({ setPage, setPractice }) {
             const hour = new Date().getHours();
-            const planetaryDay = NATURAL_WISDOM.getPlanetaryDay();
+            const naturalDay = NATURAL_WISDOM.getNaturalDay();
             const profile = DB.getProfile();
             const temperament = profile.temperament || 'melancholic';
             const tempInfo = TEMPERAMENT_NUTRITION[temperament];
@@ -1962,7 +1977,7 @@
                 { time: '15:30-16:30', name: 'Полдник', icon: '🧀', meal: 'snack2', active: hour >= 15 && hour < 17 },
                 { time: '17-18', name: 'Вечерняя прогулка', icon: '🚶', practices: ['walk_sunset', 'gratitude'], active: hour >= 17 && hour < 18 },
                 { time: '18-19', name: 'Ужин', icon: '🥗', meal: 'dinner', active: hour >= 18 && hour < 19 },
-                { time: '20-22', name: 'СПА-время', icon: '🛁', practices: ['warmth_footbath', 'bath_full', 'massage_self'], oils: planetaryDay.oils, active: hour >= 20 && hour < 22 },
+                { time: '20-22', name: 'СПА-время', icon: '🛁', practices: ['warmth_footbath', 'bath_full', 'massage_self'], oils: naturalDay.oils, active: hour >= 20 && hour < 22 },
                 { time: '22-23', name: 'Перед сном', icon: '🌙', practices: ['wonder_of_day', 'gratitude'], active: hour >= 22 && hour < 23 }
             ];
             
@@ -1970,7 +1985,7 @@
                 <div className="fade-in">
                     <h1>Мой день</h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                        {planetaryDay.icon} {planetaryDay.planet} — {planetaryDay.oilEffect}
+                        {naturalDay.icon} {naturalDay.theme} — {naturalDay.oilEffect}
                     </p>
                     
                     {/* Темперамент и питание */}
@@ -3244,13 +3259,13 @@
             };
             
             const DAY_NAMES = [
-                { id: 0, short: 'Вс', full: 'Воскресенье', icon: '☀️', oils: 'апельсин, ладан' },
-                { id: 1, short: 'Пн', full: 'Понедельник', icon: '🌙', oils: 'лаванда, эвкалипт' },
-                { id: 2, short: 'Вт', full: 'Вторник', icon: '♂️', oils: 'розмарин, можжевельник' },
-                { id: 3, short: 'Ср', full: 'Среда', icon: '☿️', oils: 'мята, лимон' },
-                { id: 4, short: 'Чт', full: 'Четверг', icon: '♃', oils: 'пихта, кедр' },
-                { id: 5, short: 'Пт', full: 'Пятница', icon: '♀️', oils: 'роза, герань' },
-                { id: 6, short: 'Сб', full: 'Суббота', icon: '♄', oils: 'кипарис, сосна' }
+                { id: 0, short: 'Вс', full: 'Воскресенье', icon: '☀️', theme: 'Свет', oils: 'апельсин, ладан' },
+                { id: 1, short: 'Пн', full: 'Понедельник', icon: '💧', theme: 'Вода', oils: 'лаванда, ромашка' },
+                { id: 2, short: 'Вт', full: 'Вторник', icon: '🔥', theme: 'Огонь', oils: 'розмарин, имбирь' },
+                { id: 3, short: 'Ср', full: 'Среда', icon: '🌬️', theme: 'Воздух', oils: 'мята, эвкалипт' },
+                { id: 4, short: 'Чт', full: 'Четверг', icon: '🌳', theme: 'Дерево', oils: 'пихта, кедр' },
+                { id: 5, short: 'Пт', full: 'Пятница', icon: '🌸', theme: 'Цветение', oils: 'роза, герань' },
+                { id: 6, short: 'Сб', full: 'Суббота', icon: '🪨', theme: 'Земля', oils: 'кипарис, можжевельник' }
             ];
             
             const saveProfile = (updates) => {
@@ -3340,7 +3355,7 @@
                             
                             {/* Зоны роста */}
                             <div className="card" style={{ marginBottom: '0.75rem' }}>
-                                <h3 style={{ marginBottom: '0.5rem' }}>🌱 Зоны роста</h3>
+                                <h3 style={{ marginBottom: '0.5rem' }}>🌱 Пути развития</h3>
                                 {desc.challenges.map((c, i) => (
                                     <p key={i} style={{ fontSize: '0.85rem', marginBottom: '0.25rem' }}>• {c}</p>
                                 ))}
@@ -3439,8 +3454,11 @@
                 else { severity = 'Тяжёлая'; color = '#DC2626'; recommendation = 'Необходима профессиональная помощь'; }
                 setPhqResult({ score, severity, color, recommendation });
                 window.scrollTo(0, 0);
-                DB.set('phq_history', [...(DB.get('phq_history', [])), { score, date: new Date().toISOString() }]);
+                DB.addPhqResult(score);
             };
+            
+            const phqHistory = DB.getPhqHistory();
+            const shouldShowPhqReminder = DB.shouldShowPhqReminder();
             
             if (showPHQ) {
                 return (
@@ -3495,6 +3513,42 @@
                                 <div className="card" style={{ textAlign: 'left' }}>
                                     <p>{phqResult.recommendation}</p>
                                 </div>
+                                
+                                {/* График истории PHQ */}
+                                {phqHistory.length > 1 && (
+                                    <div className="card" style={{ marginTop: '1rem', textAlign: 'left' }}>
+                                        <h3 style={{ marginBottom: '0.75rem' }}>📊 История оценок</h3>
+                                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100px', padding: '0.5rem 0' }}>
+                                            {phqHistory.slice(-10).map((item, idx) => {
+                                                const height = Math.max(10, (item.score / 27) * 100);
+                                                const barColor = item.score <= 4 ? '#10B981' : item.score <= 9 ? '#F59E0B' : item.score <= 14 ? '#F97316' : '#EF4444';
+                                                const date = new Date(item.date);
+                                                return (
+                                                    <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                        <span style={{ fontSize: '0.65rem', marginBottom: '2px' }}>{item.score}</span>
+                                                        <div style={{ 
+                                                            width: '100%', 
+                                                            height: height + '%', 
+                                                            background: barColor,
+                                                            borderRadius: '4px 4px 0 0',
+                                                            minHeight: '10px'
+                                                        }} />
+                                                        <span style={{ fontSize: '0.55rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                                                            {date.getDate()}/{date.getMonth() + 1}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
+                                            <span>🟢 0-4 мин.</span>
+                                            <span>🟡 5-9 лёгк.</span>
+                                            <span>🟠 10-14 умер.</span>
+                                            <span>🔴 15+ тяж.</span>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {phqResult.score >= 10 && (
                                     <div className="alert alert-warning" style={{ marginTop: '1rem', textAlign: 'left' }}>
                                         <span>📞</span>
@@ -3580,16 +3634,7 @@
                         </div>
                     )}
                     
-                    {/* PHQ-9 */}
-                    <div className="card card-clickable" style={{ marginBottom: '0.75rem', background: '#F0F9FF' }} onClick={() => setShowPHQ(true)}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '1.25rem' }}>📋</span>
-                            <div>
-                                <strong>Оценить состояние (PHQ-9)</strong>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Стандартизированный тест депрессии</p>
-                            </div>
-                        </div>
-                    </div>
+                    {/* PHQ-9 - removed from here, now below name */}
                     
                     <div className="card">
                         <h3 style={{ marginBottom: '0.5rem' }}>Имя</h3>
@@ -3597,6 +3642,39 @@
                             <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Как тебя зовут?" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid var(--earth-light)', fontSize: '0.9rem', fontFamily: 'inherit' }} />
                             <button className="btn btn-primary btn-small" onClick={() => saveProfile({ name })}>✓</button>
                         </div>
+                    </div>
+                    
+                    {/* PHQ-9 - теперь после имени */}
+                    <div 
+                        className="card card-clickable" 
+                        style={{ 
+                            marginTop: '0.75rem',
+                            background: shouldShowPhqReminder ? '#FEF3C7' : '#F0F9FF',
+                            border: shouldShowPhqReminder ? '2px solid var(--amber)' : 'none'
+                        }} 
+                        onClick={() => setShowPHQ(true)}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1.25rem' }}>📋</span>
+                            <div style={{ flex: 1 }}>
+                                <strong>Оценить состояние (PHQ-9)</strong>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                    {shouldShowPhqReminder 
+                                        ? '⏰ Пора пройти тест снова' 
+                                        : 'Стандартизированный тест депрессии'
+                                    }
+                                </p>
+                            </div>
+                            {shouldShowPhqReminder && <span style={{ fontSize: '1.25rem' }}>→</span>}
+                        </div>
+                        {phqHistory.length > 0 && (
+                            <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--earth-light)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                    <span>Последний результат: <strong style={{ color: phqHistory[phqHistory.length-1].score <= 4 ? '#10B981' : phqHistory[phqHistory.length-1].score <= 9 ? '#F59E0B' : '#EF4444' }}>{phqHistory[phqHistory.length-1].score}/27</strong></span>
+                                    <span>{new Date(phqHistory[phqHistory.length-1].date).toLocaleDateString('ru-RU')}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     
                     <div className="card" style={{ marginTop: '0.75rem' }}>
