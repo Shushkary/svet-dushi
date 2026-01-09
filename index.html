@@ -351,6 +351,22 @@
             border-left: 3px solid var(--golden-light) !important;
         }
         
+        /* Переопределение всех inline background в тёмной теме */
+        .dark-theme [style*="background:"],
+        .dark-theme [style*="background :"],
+        .dark-theme div[style*="background"] {
+            background: var(--bg-card) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        .dark-theme [style*="background"] h1,
+        .dark-theme [style*="background"] h2,
+        .dark-theme [style*="background"] h3,
+        .dark-theme [style*="background"] p,
+        .dark-theme [style*="background"] span {
+            color: var(--text-primary) !important;
+        }
+        
         /* Рекомендации и алерты */
         .dark-theme .recommendation-card {
             background: var(--bg-card) !important;
@@ -1693,7 +1709,33 @@
 
                     <div className="grid-2">
                         <div className="card card-clickable" onClick={() => setPage('day')}>
-                            <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>📅</div>
+                            <div style={{ 
+                                width: '40px', 
+                                height: '40px', 
+                                background: 'linear-gradient(180deg, #DC2626 0%, #DC2626 30%, white 30%)',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'flex-end',
+                                marginBottom: '0.25rem',
+                                border: '1px solid #e0e0e0',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                            }}>
+                                <span style={{ 
+                                    fontSize: '1.1rem', 
+                                    fontWeight: 'bold', 
+                                    color: '#1a1a1a',
+                                    lineHeight: 1,
+                                    marginBottom: '2px'
+                                }}>{new Date().getDate()}</span>
+                                <span style={{ 
+                                    fontSize: '0.55rem', 
+                                    color: '#666',
+                                    textTransform: 'uppercase',
+                                    marginBottom: '3px'
+                                }}>{['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][new Date().getMonth()]}</span>
+                            </div>
                             <strong>Мой день</strong>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>План на сегодня</p>
                         </div>
@@ -1795,13 +1837,131 @@
         function DayPage({ setPage, setPractice }) {
             const hour = new Date().getHours();
             const planetaryDay = NATURAL_WISDOM.getPlanetaryDay();
+            const profile = DB.getProfile();
+            const temperament = profile.temperament || 'melancholic';
+            const tempInfo = TEMPERAMENT_NUTRITION[temperament];
+            
+            // План питания по темпераменту
+            const getMealRecommendation = (mealType) => {
+                // Полный рацион по темпераментам (Палео)
+                const mealsByTemperament = {
+                    sanguine: {
+                        breakfast: {
+                            foods: ['🥚 Яйца 3шт', '🥑 Авокадо', '🥜 Миндаль', '🧀 Твёрдый сыр'],
+                            tip: 'Много белка для стабильной энергии весь день'
+                        },
+                        snack1: {
+                            foods: ['🥜 Грецкие орехи', '🍎 Яблоко', '🥕 Морковь'],
+                            tip: 'Полезные жиры вместо быстрых перекусов'
+                        },
+                        lunch: {
+                            foods: ['🍗 Курица гриль', '🥗 Салат с оливк. маслом', '🍚 Бурый рис', '🥒 Овощи'],
+                            tip: 'Полноценный обед — не пропускайте!'
+                        },
+                        snack2: {
+                            foods: ['🧀 Творог 5%', '🫐 Ягоды', '🥜 Кешью'],
+                            tip: 'Белок поддержит до ужина'
+                        },
+                        dinner: {
+                            foods: ['🐟 Рыба запечённая', '🥦 Брокколи', '🥬 Шпинат'],
+                            tip: 'Лёгкий белок + овощи, без круп'
+                        }
+                    },
+                    choleric: {
+                        breakfast: {
+                            foods: ['🥚 Яйца 2шт', '🥒 Огурец', '🥛 Йогурт натур.', '🫒 Оливки'],
+                            tip: 'Охлаждающие продукты для баланса огня'
+                        },
+                        snack1: {
+                            foods: ['🥒 Огурец', '🍅 Помидор', '🧀 Моцарелла'],
+                            tip: 'Свежие овощи охлаждают'
+                        },
+                        lunch: {
+                            foods: ['🐟 Рыба на пару', '🥗 Большой салат', '🥒 Кабачки тушёные', '🍋 Лимон'],
+                            tip: 'Меньше мяса, больше рыбы и овощей'
+                        },
+                        snack2: {
+                            foods: ['🥛 Кефир', '🥒 Сельдерей', '🥜 Тыкв. семечки'],
+                            tip: 'Охлаждающий полдник'
+                        },
+                        dinner: {
+                            foods: ['🥗 Салат с авокадо', '🧀 Адыгейский сыр', '🥒 Огурцы'],
+                            tip: 'Максимально лёгкий, без острого'
+                        }
+                    },
+                    melancholic: {
+                        breakfast: {
+                            foods: ['🥣 Овсянка с имбирём', '🥚 Яйца всмятку', '☕ Чай с мёдом', '🌰 Орехи'],
+                            tip: 'Только тёплая пища для согревания'
+                        },
+                        snack1: {
+                            foods: ['🍵 Имбирный чай', '🥜 Миндаль', '🍯 Мёд'],
+                            tip: 'Согревающий перекус'
+                        },
+                        lunch: {
+                            foods: ['🍲 Костный бульон', '🥩 Говядина тушёная', '🥕 Морковь', '🧄 Чеснок'],
+                            tip: 'Наваристый суп и тёплое мясо'
+                        },
+                        snack2: {
+                            foods: ['🍵 Травяной чай', '🧀 Творог тёплый', '🍯 С корицей'],
+                            tip: 'Тёплый творог с пряностями'
+                        },
+                        dinner: {
+                            foods: ['🥕 Тушёные овощи', '🧅 Лук карамел.', '🫚 Имбирь', '🥛 Ряженка тёплая'],
+                            tip: 'Приготовленная пища, не сырая!'
+                        }
+                    },
+                    phlegmatic: {
+                        breakfast: {
+                            foods: ['🥚 Яйца с перцем', '🫚 Имбирь', '🌶️ Куркума', '🍵 Зелёный чай'],
+                            tip: 'Острые специи разгоняют метаболизм'
+                        },
+                        snack1: {
+                            foods: ['🥕 Морковные палочки', '🌶️ С перцем чили', '🍋 Лимонная вода'],
+                            tip: 'Лёгкий и острый'
+                        },
+                        lunch: {
+                            foods: ['🍗 Курица с перцем', '🥗 Руккола', '🧄 Чеснок', '🌶️ Карри'],
+                            tip: 'Умеренная порция с пряностями'
+                        },
+                        snack2: {
+                            foods: ['🍵 Имбирный чай', '🥜 Немного орехов', '🥒 Овощи'],
+                            tip: 'Минимум молочного'
+                        },
+                        dinner: {
+                            foods: ['🥗 Лёгкий салат', '🐟 Рыба с лимоном', '🌿 Зелень'],
+                            tip: 'Маленькая порция, больше зелени'
+                        }
+                    }
+                };
+                
+                const meals = mealsByTemperament[temperament] || mealsByTemperament.melancholic;
+                const meal = meals[mealType];
+                
+                // Общие советы по темпераменту
+                const tempTips = {
+                    sanguine: '🌞 Регулярность важнее всего!',
+                    choleric: '🔥 Охлаждайте внутренний огонь',
+                    melancholic: '🌙 Согревайте тело и душу',
+                    phlegmatic: '💧 Разгоняйте метаболизм'
+                };
+                
+                return {
+                    ...meal,
+                    tempTip: tempTips[temperament]
+                };
+            };
             
             const dayPlan = [
-                { time: '6-9', name: 'Утро', icon: '🌅', practices: ['light_morning', 'breathing'], active: hour >= 6 && hour < 9 },
-                { time: '9-12', name: 'Позднее утро', icon: '💭', practices: ['journal_deep', 'psychoeducation'], active: hour >= 9 && hour < 12 },
-                { time: '12-15', name: 'Полдень', icon: '⚡', practices: ['walk_observe', 'warmth_heart'], active: hour >= 12 && hour < 15 },
-                { time: '15-18', name: 'День', icon: '👥', practices: ['gratitude', 'loving_kindness'], active: hour >= 15 && hour < 18 },
-                { time: '18-20', name: 'Вечер', icon: '🎨', practices: ['watercolor_emotion', 'walk_sunset'], active: hour >= 18 && hour < 20 },
+                { time: '6-7', name: 'Пробуждение', icon: '🌅', practices: ['light_morning', 'breathing'], active: hour >= 6 && hour < 7 },
+                { time: '7-9', name: 'Завтрак', icon: '🍳', meal: 'breakfast', active: hour >= 7 && hour < 9 },
+                { time: '9-11', name: 'Утренняя активность', icon: '💭', practices: ['journal_deep', 'psychoeducation'], active: hour >= 9 && hour < 11 },
+                { time: '10:30-11', name: 'Перекус', icon: '🥜', meal: 'snack1', active: hour >= 10 && hour < 11 },
+                { time: '12-14', name: 'Обед', icon: '🍽️', meal: 'lunch', active: hour >= 12 && hour < 14 },
+                { time: '14-16', name: 'День', icon: '⚡', practices: ['walk_observe', 'warmth_heart'], active: hour >= 14 && hour < 16 },
+                { time: '15:30-16:30', name: 'Полдник', icon: '🧀', meal: 'snack2', active: hour >= 15 && hour < 17 },
+                { time: '17-18', name: 'Вечерняя прогулка', icon: '🚶', practices: ['walk_sunset', 'gratitude'], active: hour >= 17 && hour < 18 },
+                { time: '18-19', name: 'Ужин', icon: '🥗', meal: 'dinner', active: hour >= 18 && hour < 19 },
                 { time: '20-22', name: 'СПА-время', icon: '🛁', practices: ['warmth_footbath', 'bath_full', 'massage_self'], oils: planetaryDay.oils, active: hour >= 20 && hour < 22 },
                 { time: '22-23', name: 'Перед сном', icon: '🌙', practices: ['wonder_of_day', 'gratitude'], active: hour >= 22 && hour < 23 }
             ];
@@ -1809,37 +1969,93 @@
             return (
                 <div className="fade-in">
                     <h1>Мой день</h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
                         {planetaryDay.icon} {planetaryDay.planet} — {planetaryDay.oilEffect}
                     </p>
                     
-                    {dayPlan.map((period, idx) => (
-                        <div key={idx} className={`day-period ${period.active ? 'active' : ''}`}>
-                            <div className="day-period-header">
-                                <span className="day-period-icon">{period.icon}</span>
-                                <strong>{period.name}</strong>
-                                <span className="day-period-time">{period.time}</span>
-                            </div>
-                            {period.oils && (
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                                    🌿 Масла: {period.oils.join(', ')}
-                                </p>
-                            )}
-                            {period.active && (
-                                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                                    {period.practices.map(pId => {
-                                        const p = PRACTICES.find(pr => pr.id === pId);
-                                        if (!p) return null;
-                                        return (
-                                            <button key={pId} className="btn btn-primary btn-small" onClick={() => { setPractice(p); setPage('practice'); }}>
-                                                {p.title}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                    {/* Темперамент и питание */}
+                    <div className="card" style={{ marginBottom: '1rem', padding: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                            <span style={{ fontSize: '1.25rem' }}>{tempInfo?.icon || '🌙'}</span>
+                            <strong>{tempInfo?.title || 'Меланхолик'}</strong>
                         </div>
-                    ))}
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                            {tempInfo?.tendency}
+                        </p>
+                    </div>
+                    
+                    {dayPlan.map((period, idx) => {
+                        const mealData = period.meal ? getMealRecommendation(period.meal) : null;
+                        
+                        return (
+                            <div key={idx} className={`day-period ${period.active ? 'active' : ''}`}>
+                                <div className="day-period-header">
+                                    <span className="day-period-icon">{period.icon}</span>
+                                    <strong>{period.name}</strong>
+                                    <span className="day-period-time">{period.time}</span>
+                                </div>
+                                
+                                {/* Блок питания */}
+                                {mealData && (
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                                            💡 {mealData.tip}
+                                        </p>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.4rem' }}>
+                                            {mealData.foods.map((food, i) => (
+                                                <span key={i} style={{ 
+                                                    background: 'var(--sand, #F5EDE0)', 
+                                                    padding: '0.2rem 0.5rem', 
+                                                    borderRadius: '10px',
+                                                    fontSize: '0.7rem'
+                                                }}>{food}</span>
+                                            ))}
+                                        </div>
+                                        {mealData.tempTip && period.active && (
+                                            <p style={{ 
+                                                fontSize: '0.75rem', 
+                                                color: 'var(--amber)', 
+                                                fontStyle: 'italic',
+                                                marginTop: '0.25rem'
+                                            }}>
+                                                {tempInfo?.icon} {mealData.tempTip}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {period.oils && (
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                        🌿 Масла: {period.oils.join(', ')}
+                                    </p>
+                                )}
+                                {period.active && period.practices && (
+                                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                                        {period.practices.map(pId => {
+                                            const p = PRACTICES.find(pr => pr.id === pId);
+                                            if (!p) return null;
+                                            return (
+                                                <button key={pId} className="btn btn-primary btn-small" onClick={() => { setPractice(p); setPage('practice'); }}>
+                                                    {p.title}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                    
+                    {/* Кнопка перехода к питанию */}
+                    <div 
+                        className="card card-clickable" 
+                        style={{ marginTop: '1rem', textAlign: 'center' }}
+                        onClick={() => setPage('nutrition')}
+                    >
+                        <span style={{ fontSize: '1.5rem' }}>🥗</span>
+                        <p style={{ fontWeight: 'bold', marginTop: '0.25rem' }}>Подробнее о питании</p>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>7-дневная программа</p>
+                    </div>
                 </div>
             );
         }
