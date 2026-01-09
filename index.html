@@ -399,6 +399,7 @@
                 }
                 
                 const natureWalks = walks.filter(w => w.type === 'forest' || w.type === 'park' || w.location?.includes('лес') || w.location?.includes('парк')).length;
+                const cityWalks = walks.filter(w => w.type === 'city').length;
                 const sunriseWalks = walks.filter(w => w.timeOfDay === 'sunrise' || (new Date(w.date).getHours() >= 5 && new Date(w.date).getHours() < 8)).length;
                 const sunsetWalks = walks.filter(w => w.timeOfDay === 'sunset' || (new Date(w.date).getHours() >= 17 && new Date(w.date).getHours() < 20)).length;
                 
@@ -412,6 +413,7 @@
                     currentStreak,
                     averageDuration: walks.length > 0 ? Math.round(walks.reduce((sum, w) => sum + (w.duration || 0), 0) / walks.length) : 0,
                     natureWalks,
+                    cityWalks,
                     sunriseWalks,
                     sunsetWalks,
                     lastWalk: walks.length > 0 ? walks[walks.length - 1] : null,
@@ -728,6 +730,7 @@
             { id: 'three_hours', name: 'Мастер прогулок', icon: '🏆', description: '180 минут за неделю', condition: (stats) => stats.weekMinutes >= 180 },
             { id: 'month_streak', name: 'Месяц силы', icon: '💎', description: '30 дней подряд', condition: (stats) => stats.currentStreak >= 30 },
             { id: 'nature_lover', name: 'Любитель природы', icon: '🌳', description: '5 прогулок в лесу/парке', condition: (stats) => stats.natureWalks >= 5 },
+            { id: 'city_walker', name: 'Городской ходок', icon: '🏙️', description: '10 прогулок в городе', condition: (stats) => (stats.cityWalks || 0) >= 10 },
             { id: 'sunrise_walker', name: 'Ранняя пташка', icon: '🌅', description: '3 прогулки на рассвете', condition: (stats) => stats.sunriseWalks >= 3 },
             { id: 'sunset_walker', name: 'Вечерний странник', icon: '🌇', description: '3 прогулки на закате', condition: (stats) => stats.sunsetWalks >= 3 }
         ];
@@ -1206,13 +1209,17 @@
             const [showAnalytics, setShowAnalytics] = useState(false);
             const [showHealthInfo, setShowHealthInfo] = useState(false);
             const [walkDuration, setWalkDuration] = useState(30);
-            const [walkType, setWalkType] = useState('observe');
+            const [walkType, setWalkType] = useState('city');
             const [walkMood, setWalkMood] = useState('neutral');
             const [walkNotes, setWalkNotes] = useState('');
             const [motivation, setMotivation] = useState('');
             const [activeWalk, setActiveWalk] = useState(null);
             const [walkTimer, setWalkTimer] = useState(0);
             const [healthInsight, setHealthInsight] = useState(HEALTH_INSIGHTS[Math.floor(Math.random() * HEALTH_INSIGHTS.length)]);
+            const [autoDetectEnabled, setAutoDetectEnabled] = useState(DB.get('walk_auto_detect', true));
+            const [showTypeSelector, setShowTypeSelector] = useState(false);
+            const [stepCount, setStepCount] = useState(0);
+            const [isMoving, setIsMoving] = useState(false);
             
             const goal = DB.getWalkGoal();
             const stateHistory = DB.getStateHistory();
@@ -1220,6 +1227,104 @@
             const currentState = stateHistory.length > 0 ? stateHistory[stateHistory.length - 1].state : 'neutral';
             const recommendation = WALK_RECOMMENDATIONS[currentState] || WALK_RECOMMENDATIONS.neutral;
             const correlation = analyzeWalkMoodCorrelation(walks, stateHistory);
+            
+            // Типы прогулок с иконками
+            const WALK_TYPES = [
+                { id: 'city', icon: '🏙️', label: 'Город', desc: 'Движение по городу' },
+                { id: 'observe', icon: '👁️', label: 'Наблюдение', desc: 'Осознанная прогулка' },
+                { id: 'forest', icon: '🌳', label: 'Лес/Парк', desc: 'На природе' },
+                { id: 'active', icon: '🏃', label: 'Активная', desc: 'Быстрая ходьба' },
+                { id: 'beauty', icon: '✨', label: 'Красота', desc: 'Поиск прекрасного' }
+            ];
+            
+            // Вибрация
+            const vibrate = (pattern) => {
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(pattern);
+                }
+            };
+            
+            // Автоопределение движения через акселерометр
+            useEffect(() => {
+                if (!autoDetectEnabled || activeWalk) return;
+                
+                let lastAccel = { x: 0, y: 0, z: 0 };
+                let movementCount = 0;
+                let checkInterval;
+                let motionHandler;
+                
+                const startAutoDetection = () => {
+                    if ('DeviceMotionEvent' in window) {
+                        // Запрос разрешения для iOS 13+
+                        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                            DeviceMotionEvent.requestPermission()
+                                .then(response => {
+                                    if (response === 'granted') {
+                                        setupMotionListener();
+                                    }
+                                })
+                                .catch(console.error);
+                        } else {
+                            setupMotionListener();
+                        }
+                    }
+                };
+                
+                const setupMotionListener = () => {
+                    motionHandler = (event) => {
+                        const accel = event.accelerationIncludingGravity;
+                        if (!accel) return;
+                        
+                        const deltaX = Math.abs(accel.x - lastAccel.x);
+                        const deltaY = Math.abs(accel.y - lastAccel.y);
+                        const deltaZ = Math.abs(accel.z - lastAccel.z);
+                        const totalDelta = deltaX + deltaY + deltaZ;
+                        
+                        lastAccel = { x: accel.x, y: accel.y, z: accel.z };
+                        
+                        // Порог для определения шага (настраиваемый)
+                        if (totalDelta > 3 && totalDelta < 20) {
+                            movementCount++;
+                        }
+                    };
+                    
+                    window.addEventListener('devicemotion', motionHandler);
+                    
+                    // Проверяем накопленные движения каждые 5 секунд
+                    checkInterval = setInterval(() => {
+                        if (movementCount >= 8 && !activeWalk && !showTypeSelector) {
+                            // Обнаружено движение!
+                            setIsMoving(true);
+                            vibrate([200, 100, 200]); // Двойная вибрация
+                            setShowTypeSelector(true);
+                            
+                            // Автостарт через 10 секунд если не выбран тип
+                            setTimeout(() => {
+                                setShowTypeSelector(prev => {
+                                    if (prev && !activeWalk) {
+                                        // Запускаем с типом по умолчанию "город"
+                                        setWalkType('city');
+                                        startWalkAuto('city');
+                                    }
+                                    return false;
+                                });
+                            }, 10000);
+                        }
+                        movementCount = 0;
+                    }, 5000);
+                };
+                
+                startAutoDetection();
+                
+                return () => {
+                    if (motionHandler) {
+                        window.removeEventListener('devicemotion', motionHandler);
+                    }
+                    if (checkInterval) {
+                        clearInterval(checkInterval);
+                    }
+                };
+            }, [autoDetectEnabled, activeWalk, showTypeSelector]);
             
             // Получить случайную мотивацию
             const getMotivation = (type) => {
@@ -1244,10 +1349,27 @@
                 return () => clearInterval(interval);
             }, [activeWalk]);
             
-            // Начать прогулку
+            // Начать прогулку (ручной запуск)
             const startWalk = () => {
                 setActiveWalk(Date.now());
                 setMotivation(getMotivation('start'));
+                vibrate(100);
+            };
+            
+            // Начать прогулку (автозапуск)
+            const startWalkAuto = (type) => {
+                setWalkType(type || 'city');
+                setActiveWalk(Date.now());
+                setMotivation('🚶 Прогулка началась автоматически!');
+                setShowTypeSelector(false);
+                vibrate([100, 50, 100]);
+            };
+            
+            // Выбор типа при автоопределении
+            const selectTypeAndStart = (type) => {
+                setWalkType(type);
+                setShowTypeSelector(false);
+                startWalkAuto(type);
             };
             
             // Завершить прогулку
@@ -1269,10 +1391,12 @@
                     });
                     setStats(DB.getWalkStats());
                     setMotivation(getMotivation('complete'));
+                    vibrate([100, 100, 300]); // Финальная вибрация
                 }
                 setActiveWalk(null);
                 setWalkTimer(0);
                 setWalkNotes('');
+                setIsMoving(false);
             };
             
             // Добавить прогулку вручную
@@ -1295,6 +1419,16 @@
                 setMotivation(getMotivation('complete'));
             };
             
+            // Переключение автоопределения
+            const toggleAutoDetect = () => {
+                const newValue = !autoDetectEnabled;
+                setAutoDetectEnabled(newValue);
+                DB.set('walk_auto_detect', newValue);
+                if (newValue) {
+                    vibrate(50);
+                }
+            };
+            
             const formatTime = (seconds) => {
                 const mins = Math.floor(seconds / 60);
                 const secs = seconds % 60;
@@ -1303,6 +1437,54 @@
             
             const achievements = checkAchievements();
             const weekProgress = Math.min(100, (stats.weekMinutes / goal.weeklyMinutes) * 100);
+            
+            // Модальное окно выбора типа прогулки
+            if (showTypeSelector) {
+                return (
+                    <div className="fade-in" style={{ padding: '1rem' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🚶</div>
+                            <h2>Обнаружено движение!</h2>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Выберите тип прогулки</p>
+                        </div>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {WALK_TYPES.map(t => (
+                                <div 
+                                    key={t.id}
+                                    className="card card-clickable"
+                                    style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '1rem',
+                                        background: t.id === 'city' ? '#FEF3C7' : 'white'
+                                    }}
+                                    onClick={() => selectTypeAndStart(t.id)}
+                                >
+                                    <span style={{ fontSize: '2rem' }}>{t.icon}</span>
+                                    <div>
+                                        <strong>{t.label}</strong>
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{t.desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                Автостарт «Город» через 10 сек...
+                            </p>
+                            <button 
+                                className="btn btn-secondary btn-small" 
+                                style={{ marginTop: '0.5rem' }}
+                                onClick={() => { setShowTypeSelector(false); setIsMoving(false); }}
+                            >
+                                Отмена
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
             
             // Экран аналитики здоровья
             if (showAnalytics) {
@@ -1380,6 +1562,11 @@
                         <div className="card" style={{ marginBottom: '0.75rem' }}>
                             <h3 style={{ marginBottom: '0.5rem' }}>🌿 Типы прогулок</h3>
                             <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '0.85rem' }}>
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem' }}>🏙️</div>
+                                    <div style={{ fontWeight: 'bold' }}>{stats.cityWalks || 0}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>в городе</div>
+                                </div>
                                 <div style={{ textAlign: 'center' }}>
                                     <div style={{ fontSize: '1.5rem' }}>🌳</div>
                                     <div style={{ fontWeight: 'bold' }}>{stats.natureWalks}</div>
@@ -1464,7 +1651,7 @@
                         ) : (
                             walks.slice().reverse().slice(0, 20).map((w, idx) => {
                                 const date = new Date(w.date);
-                                const typeIcons = { sunrise: '🌅', sunset: '🌇', forest: '🌳', observe: '👁️', beauty: '✨', active: '🏃', night: '🌙', day: '☀️' };
+                                const typeIcons = { sunrise: '🌅', sunset: '🌇', forest: '🌳', observe: '👁️', beauty: '✨', active: '🏃', night: '🌙', day: '☀️', city: '🏙️' };
                                 return (
                                     <div key={idx} className="card" style={{ marginBottom: '0.5rem' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1518,6 +1705,7 @@
                             <h3 style={{ marginBottom: '0.5rem' }}>Тип прогулки</h3>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                                 {[
+                                    { id: 'city', icon: '🏙️', label: 'Город' },
                                     { id: 'observe', icon: '👁️', label: 'Наблюдение' },
                                     { id: 'forest', icon: '🌳', label: 'Лес/Парк' },
                                     { id: 'active', icon: '🏃', label: 'Активная' },
@@ -1550,15 +1738,30 @@
             
             // Активная прогулка
             if (activeWalk) {
+                const currentType = WALK_TYPES.find(t => t.id === walkType) || WALK_TYPES[0];
                 return (
                     <div className="fade-in" style={{ textAlign: 'center', padding: '1rem' }}>
                         <h1>🚶 Прогулка</h1>
+                        
+                        {/* Текущий тип */}
+                        <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '0.5rem', 
+                            padding: '0.5rem 1rem',
+                            background: 'var(--cream-warm)',
+                            borderRadius: '20px',
+                            marginBottom: '1rem'
+                        }}>
+                            <span style={{ fontSize: '1.25rem' }}>{currentType.icon}</span>
+                            <span style={{ fontWeight: '600' }}>{currentType.label}</span>
+                        </div>
                         
                         <div style={{ 
                             fontSize: '3.5rem', 
                             fontWeight: 'bold', 
                             color: 'var(--amber)', 
-                            margin: '2rem 0',
+                            margin: '1.5rem 0',
                             fontFamily: 'monospace'
                         }}>
                             {formatTime(walkTimer)}
@@ -1575,6 +1778,23 @@
                                 <strong style={{ fontSize: '0.9rem' }}>{healthInsight.title}</strong>
                             </div>
                             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{healthInsight.fact}</p>
+                        </div>
+                        
+                        {/* Смена типа прогулки */}
+                        <div className="card" style={{ marginBottom: '1rem' }}>
+                            <h4 style={{ marginBottom: '0.5rem', fontSize: '0.85rem' }}>Изменить тип</h4>
+                            <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                {WALK_TYPES.map(t => (
+                                    <button 
+                                        key={t.id}
+                                        className={`btn btn-small ${walkType === t.id ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setWalkType(t.id)}
+                                        style={{ padding: '0.4rem 0.6rem' }}
+                                    >
+                                        {t.icon}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                         
                         {walkTimer > 60 && walkTimer % 300 < 5 && (
@@ -1610,6 +1830,56 @@
             return (
                 <div className="fade-in">
                     <h1>🚶 Трекер прогулок</h1>
+                    
+                    {/* Автоопределение движения */}
+                    <div 
+                        className="card" 
+                        style={{ 
+                            marginTop: '0.75rem', 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            background: autoDetectEnabled ? '#F0FDF4' : 'var(--cream-light)'
+                        }}
+                    >
+                        <div>
+                            <strong style={{ fontSize: '0.9rem' }}>📱 Автотрекинг</strong>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                {autoDetectEnabled ? 'Вкл — определяю движение' : 'Выкл'}
+                            </p>
+                        </div>
+                        <div 
+                            onClick={toggleAutoDetect}
+                            style={{ 
+                                width: '50px', 
+                                height: '28px', 
+                                borderRadius: '14px', 
+                                background: autoDetectEnabled ? 'var(--harmony-green)' : '#ccc',
+                                position: 'relative',
+                                cursor: 'pointer',
+                                transition: 'background 0.3s'
+                            }}
+                        >
+                            <div style={{
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '12px',
+                                background: 'white',
+                                position: 'absolute',
+                                top: '2px',
+                                left: autoDetectEnabled ? '24px' : '2px',
+                                transition: 'left 0.3s',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                            }} />
+                        </div>
+                    </div>
+                    
+                    {isMoving && !activeWalk && (
+                        <div className="alert alert-info" style={{ marginTop: '0.5rem' }}>
+                            <span>🚶</span>
+                            <div>Обнаружено движение...</div>
+                        </div>
+                    )}
                     
                     {/* Мотивация */}
                     {motivation && (
