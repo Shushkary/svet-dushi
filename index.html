@@ -1984,6 +1984,7 @@
                 const secondary = sorted[1][1] > 1 ? sorted[1][0] : null;
                 
                 setTestResult({ scores, percentages, primary, secondary });
+                window.scrollTo(0, 0);
                 
                 // Сохранить результат в профиль
                 saveProfile({ temperament: primary, temperamentSecondary: secondary, temperamentScores: percentages });
@@ -2139,6 +2140,7 @@
                 else if (score <= 19) { severity = 'Умеренно-тяжёлая'; color = '#EF4444'; recommendation = 'Рекомендуется обратиться к специалисту'; }
                 else { severity = 'Тяжёлая'; color = '#DC2626'; recommendation = 'Необходима профессиональная помощь'; }
                 setPhqResult({ score, severity, color, recommendation });
+                window.scrollTo(0, 0);
                 DB.set('phq_history', [...(DB.get('phq_history', [])), { score, date: new Date().toISOString() }]);
             };
             
