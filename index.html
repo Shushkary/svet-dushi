@@ -57,50 +57,75 @@
         }
         
         .dark-theme {
-            --golden-light: #D4A030;
-            --golden-soft: #B8922A;
-            --amber: #C9922F;
-            --amber-warm: #A67825;
-            --peach-glow: #4A3D35;
-            --peach-soft: #3D3530;
-            --cream-light: #1A1815;
-            --cream-warm: #252220;
-            --sand: #2D2A25;
-            --earth-light: #3A3530;
-            --text-primary: #E8E4E0;
-            --text-secondary: #B5AFA8;
-            --text-tertiary: #7A756F;
+            --golden-light: #C9A227;
+            --golden-soft: #A68A1F;
+            --amber: #B8860B;
+            --amber-warm: #8B6914;
+            --peach-glow: #3D3A35;
+            --peach-soft: #2D2B28;
+            --cream-light: #1E1C1A;
+            --cream-warm: #262422;
+            --sand: #2A2826;
+            --earth-light: #333130;
+            --text-primary: #D4D0CA;
+            --text-secondary: #9A958E;
+            --text-tertiary: #6A665F;
             --text-on-dark: #1A1815;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-            --bg-primary: #1A1815;
-            --bg-card: #252220;
-            --bg-nav: rgba(26, 24, 21, 0.95);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+            --bg-primary: #1A1816;
+            --bg-card: #242220;
+            --bg-nav: rgba(30, 28, 26, 0.98);
+            --harmony-green: #5A8A65;
+            --harmony-light: #4A7A55;
+            --twilight-blue: #3A5A85;
+            --twilight-deep: #2A4A6A;
+            --violet: #5A4A7A;
+            --violet-soft: #6A5A8A;
         }
         
         .dark-theme body {
             background: var(--bg-primary);
+            color: var(--text-primary);
         }
         
         .dark-theme .card {
             background: var(--bg-card);
-            border-color: var(--earth-light);
+            border: 1px solid var(--earth-light);
+        }
+        
+        .dark-theme .card-clickable:hover {
+            background: var(--sand);
         }
         
         .dark-theme .bottom-nav {
             background: var(--bg-nav);
-            border-top-color: var(--earth-light);
+            border-top: 1px solid var(--earth-light);
+        }
+        
+        .dark-theme .nav-item.active {
+            color: var(--golden-light);
+        }
+        
+        .dark-theme .btn-primary {
+            background: linear-gradient(135deg, var(--amber), var(--golden-light));
+            color: #1A1816;
         }
         
         .dark-theme .btn-secondary {
             background: var(--sand);
             color: var(--text-primary);
+            border: 1px solid var(--earth-light);
         }
         
         .dark-theme input, .dark-theme textarea, .dark-theme select {
-            background: var(--bg-card);
+            background: var(--sand);
             color: var(--text-primary);
-            border-color: var(--earth-light);
+            border: 1px solid var(--earth-light);
+        }
+        
+        .dark-theme input::placeholder, .dark-theme textarea::placeholder {
+            color: var(--text-tertiary);
         }
         
         .dark-theme .journal-textarea {
@@ -109,19 +134,82 @@
         }
         
         .dark-theme .quote-card {
-            background: linear-gradient(135deg, var(--twilight-deep), var(--night-sky));
+            background: linear-gradient(135deg, var(--twilight-deep), #1A2A3A);
+            border: 1px solid var(--twilight-blue);
         }
         
         .dark-theme .recommendation-card {
-            background: linear-gradient(135deg, var(--sand), var(--earth-light));
+            background: linear-gradient(135deg, var(--sand), var(--bg-card));
+            border: 1px solid var(--earth-light);
         }
         
         .dark-theme .soul-chip {
             background: var(--sand);
+            border: 1px solid var(--earth-light);
         }
         
         .dark-theme .soul-chip.active {
             background: var(--amber);
+            color: #1A1816;
+            border-color: var(--golden-light);
+        }
+        
+        .dark-theme .alert {
+            background: var(--sand);
+            border: 1px solid var(--earth-light);
+        }
+        
+        .dark-theme .alert-info {
+            background: rgba(58, 90, 133, 0.2);
+            border-color: var(--twilight-blue);
+        }
+        
+        .dark-theme .progress-bar {
+            background: var(--sand);
+        }
+        
+        .dark-theme .progress-fill {
+            background: linear-gradient(90deg, var(--amber), var(--golden-light));
+        }
+        
+        .dark-theme h1, .dark-theme h2, .dark-theme h3, .dark-theme h4 {
+            color: var(--text-primary);
+        }
+        
+        .dark-theme .category-chip {
+            background: var(--sand);
+            border: 1px solid var(--earth-light);
+        }
+        
+        .dark-theme .category-chip.active {
+            background: var(--amber);
+            color: #1A1816;
+        }
+        
+        /* Специальные карточки в тёмной теме */
+        .dark-theme [style*="background: #FEF3C7"],
+        .dark-theme [style*="background: linear-gradient(135deg, #FEF3C7"] {
+            background: var(--sand) !important;
+            border: 1px solid var(--amber) !important;
+        }
+        
+        .dark-theme [style*="background: #F0FDF4"] {
+            background: rgba(90, 138, 101, 0.15) !important;
+            border: 1px solid var(--harmony-green) !important;
+        }
+        
+        .dark-theme [style*="background: #FEF2F2"] {
+            background: rgba(180, 80, 80, 0.15) !important;
+            border: 1px solid #8B4A4A !important;
+        }
+        
+        .dark-theme [style*="background: #EFF6FF"] {
+            background: rgba(58, 90, 133, 0.15) !important;
+            border: 1px solid var(--twilight-blue) !important;
+        }
+        
+        .dark-theme [style*="background: white"] {
+            background: var(--bg-card) !important;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
