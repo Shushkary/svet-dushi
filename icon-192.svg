@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#FDF8F3"/>
+  <circle cx="96" cy="86" r="50" fill="#FCD34D"/>
+  <circle cx="96" cy="86" r="35" fill="#FBBF24"/>
+  <g fill="#D4A574">
+    <ellipse cx="96" cy="150" rx="30" ry="8"/>
+    <path d="M76 86 L60 60 M116 86 L132 60 M96 56 L96 30 M70 100 L50 110 M122 100 L142 110" stroke="#FCD34D" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <text x="96" y="170" font-family="Arial" font-size="18" fill="#8B7355" text-anchor="middle">Свет Души</text>
+</svg>

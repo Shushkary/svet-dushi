@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#D4A574">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Свет Души - приложение для поддержки при депрессии">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23FDF8F3' width='100' height='100' rx='20'/><circle cx='50' cy='45' r='25' fill='%23FCD34D'/><circle cx='50' cy='45' r='18' fill='%23FBBF24'/></svg>">
+    <title>Свет Души</title>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --golden-light: #F6C445;
+            --golden-soft: #FAD978;
+            --amber: #E8A838;
+            --amber-warm: #D4882B;
+            --peach-glow: #FDD5B1;
+            --peach-soft: #FEE8D6;
+            --rose-aurora: #F4A4A4;
+            --twilight-blue: #4A6FA5;
+            --twilight-deep: #2D4A6F;
+            --night-sky: #1A2F4A;
+            --violet: #6B5B8C;
+            --violet-soft: #8A7AAA;
+            --lavender: #B8A9C9;
+            --harmony-green: #7BA885;
+            --harmony-light: #A8C9AE;
+            --sage: #9CAF88;
+            --cream-light: #FFFBF5;
+            --cream-warm: #FFF8F0;
+            --sand: #F5EDE0;
+            --earth-light: #E8DFD4;
+            --text-primary: #2D2520;
+            --text-secondary: #5C524A;
+            --text-tertiary: #8A7F75;
+            --text-on-dark: #FFFBF5;
+            --shadow-sm: 0 1px 2px rgba(45, 37, 32, 0.05);
+            --shadow-md: 0 4px 12px rgba(45, 37, 32, 0.08);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html { font-size: 16px; }
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--cream-light);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+            overscroll-behavior: none;
+        }
+        h1, h2, h3, h4 { font-weight: 600; line-height: 1.3; }
+        h1 { font-size: 1.5rem; }
+        h2 { font-size: 1.25rem; }
+        h3 { font-size: 1.1rem; }
+        
+        .app { 
+            min-height: 100vh; 
+            padding-bottom: calc(70px + var(--safe-bottom)); 
+        }
+        
+        .main { 
+            padding: 1rem; 
+            padding-top: max(1rem, env(safe-area-inset-top)); 
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--cream-warm);
+            border-top: 1px solid var(--earth-light);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+            padding-bottom: calc(0.5rem + var(--safe-bottom));
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.4rem 0.75rem;
+            border-radius: 12px;
+            color: var(--text-tertiary);
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-item.active {
+            color: var(--amber);
+            background: rgba(232, 168, 56, 0.1);
+        }
+        .nav-icon { font-size: 1.3rem; margin-bottom: 2px; }
+        
+        /* Карточки */
+        .card {
+            background: var(--cream-warm);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .card-clickable { cursor: pointer; }
+        .card-clickable:active { transform: scale(0.98); opacity: 0.9; }
+        
+        /* Кнопки */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--amber), var(--golden-light));
+            color: var(--text-on-dark);
+            box-shadow: var(--shadow-md);
+        }
+        .btn-primary:active { transform: scale(0.96); }
+        .btn-secondary {
+            background: var(--cream-warm);
+            color: var(--text-primary);
+            border: 1px solid var(--earth-light);
+        }
+        .btn-small { padding: 8px 14px; font-size: 0.8rem; }
+        .btn-full { width: 100%; }
+        
+        /* Состояния души */
+        .soul-states { 
+            display: flex; 
+            gap: 0.4rem; 
+            overflow-x: auto; 
+            padding: 0.5rem 0; 
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .soul-states::-webkit-scrollbar { display: none; }
+        .soul-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: var(--cream-warm);
+            min-width: 60px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .soul-chip.active {
+            background: linear-gradient(135deg, var(--amber), var(--golden-light));
+            color: var(--text-on-dark);
+        }
+        .soul-emoji { font-size: 1.2rem; }
+        .soul-label { font-size: 0.6rem; font-weight: 500; margin-top: 2px; }
+        
+        /* Категории */
+        .category-pills { 
+            display: flex; 
+            gap: 0.4rem; 
+            overflow-x: auto; 
+            padding: 0.5rem 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .category-pills::-webkit-scrollbar { display: none; }
+        .category-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: var(--cream-warm);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .category-pill.active {
+            background: var(--amber);
+            color: var(--text-on-dark);
+        }
+        
+        /* Рекомендации */
+        .recommendation-card {
+            background: linear-gradient(135deg, var(--golden-soft) 0%, var(--peach-soft) 100%);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .recommendation-title { font-weight: 600; margin-bottom: 0.25rem; }
+        .recommendation-reason { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        
+        /* Цитата */
+        .quote-card {
+            background: linear-gradient(135deg, var(--lavender), var(--violet-soft));
+            color: var(--text-on-dark);
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .quote-text { font-size: 1rem; font-style: italic; margin-bottom: 0.5rem; }
+        .quote-author { font-size: 0.8rem; opacity: 0.8; }
+        
+        /* Приветствие */
+        .greeting { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .greeting-sub { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+        
+        /* Сетки */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        
+        /* Практика */
+        .practice-meta { display: flex; gap: 0.75rem; margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-tertiary); }
+        
+        /* Шаги практики */
+        .step-card {
+            display: flex;
+            gap: 0.75rem;
+            background: rgba(255,255,255,0.7);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--amber), var(--golden-light));
+            color: var(--text-on-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .step-text { font-size: 0.95rem; line-height: 1.5; }
+        
+        /* Прогресс */
+        .progress-bar { height: 4px; background: var(--earth-light); border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), var(--golden-light)); border-radius: 2px; transition: width 0.3s; }
+        
+        /* Чат */
+        .chat-container { display: flex; flex-direction: column; height: calc(100vh - 140px); }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
+        .chat-msg { display: flex; gap: 8px; margin-bottom: 0.75rem; max-width: 85%; }
+        .chat-msg.user { margin-left: auto; flex-direction: row-reverse; }
+        .chat-avatar { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .chat-avatar.ai { background: linear-gradient(135deg, var(--golden-soft), var(--peach-glow)); }
+        .chat-avatar.user { background: var(--violet-soft); }
+        .chat-bubble { padding: 10px 14px; border-radius: 14px; font-size: 0.9rem; line-height: 1.4; }
+        .chat-msg.ai .chat-bubble { background: var(--cream-warm); border-bottom-left-radius: 4px; }
+        .chat-msg.user .chat-bubble { background: linear-gradient(135deg, var(--amber), var(--golden-light)); color: var(--text-on-dark); border-bottom-right-radius: 4px; }
+        .chat-input-container { display: flex; gap: 8px; padding: 0.75rem; background: var(--cream-warm); border-radius: 16px; margin-top: 0.5rem; }
+        .chat-input { flex: 1; border: none; background: transparent; font-family: inherit; font-size: 0.9rem; color: var(--text-primary); outline: none; }
+        
+        /* Дневник */
+        .journal-entry { background: var(--cream-warm); border-radius: 12px; padding: 1rem; margin-bottom: 0.5rem; }
+        .journal-textarea { width: 100%; min-height: 150px; border: 1px solid var(--earth-light); border-radius: 12px; padding: 1rem; font-family: inherit; font-size: 0.95rem; line-height: 1.6; resize: none; background: var(--cream-light); outline: none; }
+        .journal-textarea:focus { border-color: var(--amber); }
+        
+        /* Статистика */
+        .stat-card { text-align: center; padding: 1rem; background: var(--cream-warm); border-radius: 12px; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--amber); }
+        .stat-label { font-size: 0.7rem; color: var(--text-tertiary); margin-top: 2px; }
+        
+        /* Планетарный бейдж */
+        .planet-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 16px; font-size: 0.75rem; font-weight: 500; }
+        
+        /* Темперамент */
+        .temperament-card { padding: 0.75rem; border-radius: 12px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+        .temperament-card.active { border-color: var(--amber); }
+        .temperament-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .temperament-name { font-weight: 600; font-size: 0.8rem; }
+        .temperament-element { font-size: 0.65rem; color: var(--text-tertiary); }
+        
+        /* Алерты */
+        .alert { padding: 0.75rem; border-radius: 12px; margin-bottom: 0.75rem; display: flex; gap: 8px; align-items: flex-start; font-size: 0.85rem; }
+        .alert-info { background: #E0F2FE; border-left: 3px solid #0EA5E9; }
+        .alert-warning { background: #FEF3C7; border-left: 3px solid var(--amber); }
+        
+        /* Анимации */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease forwards; }
+        
+        /* Ритм дня */
+        .day-period { padding: 0.75rem; border-radius: 12px; margin-bottom: 0.5rem; background: var(--cream-warm); }
+        .day-period.active { border-left: 3px solid var(--amber); background: var(--sand); }
+        .day-period-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+        .day-period-icon { font-size: 1.25rem; }
+        .day-period-time { font-size: 0.7rem; color: var(--text-tertiary); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ═══════════════════════════════════════════════════════════════
+        // БАЗА ДАННЫХ
+        // ═══════════════════════════════════════════════════════════════
+        
+        const DB = {
+            get: (key, def = null) => {
+                try {
+                    const item = localStorage.getItem('svetdushi_' + key);
+                    return item ? JSON.parse(item) : def;
+                } catch { return def; }
+            },
+            set: (key, value) => {
+                try { localStorage.setItem('svetdushi_' + key, JSON.stringify(value)); } catch {}
+            },
+            getStateHistory: () => DB.get('state_history', []),
+            addState: (state) => {
+                const history = DB.getStateHistory();
+                history.push({ state, timestamp: Date.now(), date: new Date().toISOString() });
+                if (history.length > 100) history.shift();
+                DB.set('state_history', history);
+            },
+            getJournal: () => DB.get('journal', []),
+            addJournalEntry: (entry) => {
+                const journal = DB.getJournal();
+                journal.unshift({ ...entry, id: Date.now(), date: new Date().toISOString() });
+                DB.set('journal', journal);
+            },
+            getPracticeHistory: () => DB.get('practice_history', []),
+            addPractice: (practiceId, duration) => {
+                const history = DB.getPracticeHistory();
+                history.push({ practiceId, duration, timestamp: Date.now(), date: new Date().toISOString() });
+                DB.set('practice_history', history);
+            },
+            getProfile: () => DB.get('profile', { temperament: null, name: '' }),
+            setProfile: (profile) => DB.set('profile', profile),
+            // Прогулки трекер
+            getWalks: () => DB.get('walks', []),
+            addWalk: (walk) => {
+                const walks = DB.getWalks();
+                walks.push({ ...walk, id: Date.now(), date: new Date().toISOString() });
+                DB.set('walks', walks);
+                return walks;
+            },
+            getWalkStats: () => {
+                const walks = DB.getWalks();
+                const now = Date.now();
+                const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+                const monthAgo = now - 30 * 24 * 60 * 60 * 1000;
+                
+                const weekWalks = walks.filter(w => new Date(w.date).getTime() > weekAgo);
+                const monthWalks = walks.filter(w => new Date(w.date).getTime() > monthAgo);
+                
+                // Подсчёт серии (streak)
+                let currentStreak = 0;
+                let checkDate = new Date();
+                checkDate.setHours(0, 0, 0, 0);
+                
+                while (true) {
+                    const dayStart = checkDate.getTime();
+                    const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+                    const hasWalk = walks.some(w => {
+                        const wTime = new Date(w.date).getTime();
+                        return wTime >= dayStart && wTime < dayEnd;
+                    });
+                    if (hasWalk) {
+                        currentStreak++;
+                        checkDate.setDate(checkDate.getDate() - 1);
+                    } else if (currentStreak === 0 && checkDate.getTime() === new Date().setHours(0,0,0,0)) {
+                        // Сегодня ещё нет прогулки, проверим вчера
+                        checkDate.setDate(checkDate.getDate() - 1);
+                    } else {
+                        break;
+                    }
+                    if (currentStreak > 365) break; // защита от бесконечного цикла
+                }
+                
+                const natureWalks = walks.filter(w => w.type === 'forest' || w.type === 'park' || w.location?.includes('лес') || w.location?.includes('парк')).length;
+                const sunriseWalks = walks.filter(w => w.timeOfDay === 'sunrise' || (new Date(w.date).getHours() >= 5 && new Date(w.date).getHours() < 8)).length;
+                const sunsetWalks = walks.filter(w => w.timeOfDay === 'sunset' || (new Date(w.date).getHours() >= 17 && new Date(w.date).getHours() < 20)).length;
+                
+                return {
+                    totalWalks: walks.length,
+                    totalMinutes: walks.reduce((sum, w) => sum + (w.duration || 0), 0),
+                    weekWalks: weekWalks.length,
+                    weekMinutes: weekWalks.reduce((sum, w) => sum + (w.duration || 0), 0),
+                    monthWalks: monthWalks.length,
+                    monthMinutes: monthWalks.reduce((sum, w) => sum + (w.duration || 0), 0),
+                    currentStreak,
+                    averageDuration: walks.length > 0 ? Math.round(walks.reduce((sum, w) => sum + (w.duration || 0), 0) / walks.length) : 0,
+                    natureWalks,
+                    sunriseWalks,
+                    sunsetWalks,
+                    lastWalk: walks.length > 0 ? walks[walks.length - 1] : null,
+                    todayWalked: walks.some(w => {
+                        const wDate = new Date(w.date);
+                        const today = new Date();
+                        return wDate.toDateString() === today.toDateString();
+                    })
+                };
+            },
+            getWalkGoal: () => DB.get('walk_goal', { dailyMinutes: 30, weeklyMinutes: 150 }),
+            setWalkGoal: (goal) => DB.set('walk_goal', goal),
+            // Планировщик бани
+            getSaunaDay: () => DB.get('sauna_day', null), // 0-6 (Вс-Сб) или null
+            setSaunaDay: (day) => DB.set('sauna_day', day),
+            getSaunaHistory: () => DB.get('sauna_history', []),
+            addSaunaVisit: (visit) => {
+                const history = DB.getSaunaHistory();
+                history.push({ ...visit, id: Date.now(), date: new Date().toISOString() });
+                DB.set('sauna_history', history);
+            }
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // АНТРОПОСОФИЯ
+        // ═══════════════════════════════════════════════════════════════
+        
+        // Тест на определение темперамента
+        const TEMPERAMENT_TEST = {
+            questions: [
+                {
+                    text: 'Как вы обычно реагируете на новые идеи?',
+                    answers: [
+                        { text: 'Загораюсь энтузиазмом, сразу хочу попробовать', type: 'sanguine' },
+                        { text: 'Быстро оцениваю и действую, если вижу пользу', type: 'choleric' },
+                        { text: 'Глубоко обдумываю, взвешиваю все за и против', type: 'melancholic' },
+                        { text: 'Спокойно принимаю к сведению, не тороплюсь', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Как вы ведёте себя в компании?',
+                    answers: [
+                        { text: 'Общителен(ьна), легко знакомлюсь, много шучу', type: 'sanguine' },
+                        { text: 'Часто беру инициативу, организую, веду за собой', type: 'choleric' },
+                        { text: 'Предпочитаю глубокие разговоры с близкими', type: 'melancholic' },
+                        { text: 'Наблюдаю, слушаю, включаюсь когда нужно', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Как вы переживаете неудачи?',
+                    answers: [
+                        { text: 'Быстро расстраиваюсь, но быстро отхожу', type: 'sanguine' },
+                        { text: 'Злюсь, но это даёт энергию исправить ситуацию', type: 'choleric' },
+                        { text: 'Долго переживаю, анализирую, что пошло не так', type: 'melancholic' },
+                        { text: 'Принимаю спокойно, не драматизирую', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Какой темп жизни вам ближе?',
+                    answers: [
+                        { text: 'Быстрый, разнообразный, много всего сразу', type: 'sanguine' },
+                        { text: 'Интенсивный, целеустремлённый, результативный', type: 'choleric' },
+                        { text: 'Размеренный, с временем для глубины и рефлексии', type: 'melancholic' },
+                        { text: 'Спокойный, стабильный, без спешки', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Что вас больше всего заряжает энергией?',
+                    answers: [
+                        { text: 'Общение, новые впечатления, смена обстановки', type: 'sanguine' },
+                        { text: 'Достижение целей, преодоление препятствий', type: 'choleric' },
+                        { text: 'Творчество, искусство, глубокие переживания', type: 'melancholic' },
+                        { text: 'Уединение, природа, спокойные занятия', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Как вы принимаете решения?',
+                    answers: [
+                        { text: 'Быстро, по наитию, доверяю чувствам', type: 'sanguine' },
+                        { text: 'Решительно, ориентируясь на результат', type: 'choleric' },
+                        { text: 'Тщательно обдумываю, взвешиваю последствия', type: 'melancholic' },
+                        { text: 'Не тороплюсь, даю ситуации созреть', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Как вы относитесь к рутине?',
+                    answers: [
+                        { text: 'Скучаю, нужно разнообразие и новизна', type: 'sanguine' },
+                        { text: 'Терплю, если она ведёт к цели', type: 'choleric' },
+                        { text: 'Могу погрузиться, если дело имеет смысл', type: 'melancholic' },
+                        { text: 'Комфортна, создаёт ощущение стабильности', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Какие эмоции вы чаще испытываете?',
+                    answers: [
+                        { text: 'Радость, оптимизм, воодушевление', type: 'sanguine' },
+                        { text: 'Азарт, решимость, иногда раздражение', type: 'choleric' },
+                        { text: 'Глубокие чувства, иногда грусть и тоску', type: 'melancholic' },
+                        { text: 'Спокойствие, умиротворение, равновесие', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Как вы восстанавливаетесь после стресса?',
+                    answers: [
+                        { text: 'Общаюсь с друзьями, развлекаюсь, переключаюсь', type: 'sanguine' },
+                        { text: 'Занимаюсь спортом или активной деятельностью', type: 'choleric' },
+                        { text: 'Уединяюсь, слушаю музыку, размышляю', type: 'melancholic' },
+                        { text: 'Отдыхаю, сплю, занимаюсь спокойными делами', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Как вы относитесь к переменам?',
+                    answers: [
+                        { text: 'Люблю! Перемены — это интересно', type: 'sanguine' },
+                        { text: 'Принимаю, если они ведут к улучшению', type: 'choleric' },
+                        { text: 'Осторожно, нужно время адаптироваться', type: 'melancholic' },
+                        { text: 'Предпочитаю стабильность, но адаптируюсь', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Какое время суток вам ближе?',
+                    answers: [
+                        { text: 'День — время активности и общения', type: 'sanguine' },
+                        { text: 'Утро — энергичный старт дня', type: 'choleric' },
+                        { text: 'Вечер или ночь — время для глубины', type: 'melancholic' },
+                        { text: 'Любое, когда можно спокойно заниматься делами', type: 'phlegmatic' }
+                    ]
+                },
+                {
+                    text: 'Как вы относитесь к конфликтам?',
+                    answers: [
+                        { text: 'Стараюсь сгладить, перевести в шутку', type: 'sanguine' },
+                        { text: 'Вступаю, отстаиваю свою позицию', type: 'choleric' },
+                        { text: 'Избегаю, но глубоко переживаю', type: 'melancholic' },
+                        { text: 'Сохраняю спокойствие, ищу компромисс', type: 'phlegmatic' }
+                    ]
+                }
+            ],
+            
+            getDescription: (type) => {
+                const descriptions = {
+                    sanguine: {
+                        title: 'Сангвиник',
+                        icon: '🌞',
+                        element: 'Воздух',
+                        color: '#FCD34D',
+                        strengths: ['Оптимизм и жизнерадостность', 'Лёгкость в общении', 'Быстрая адаптация', 'Творческое мышление'],
+                        challenges: ['Поверхностность', 'Непостоянство', 'Трудности с глубиной'],
+                        practices: ['Акварель', 'Прогулки', 'Дыхательные практики'],
+                        tip: 'Развивайте глубину через дневник и медитацию'
+                    },
+                    choleric: {
+                        title: 'Холерик',
+                        icon: '🔥',
+                        element: 'Огонь',
+                        color: '#F97316',
+                        strengths: ['Энергичность и решительность', 'Лидерские качества', 'Целеустремлённость', 'Способность вести за собой'],
+                        challenges: ['Вспыльчивость', 'Нетерпеливость', 'Склонность к выгоранию'],
+                        practices: ['Активные прогулки', 'Баня', 'Практики присутствия'],
+                        tip: 'Практикуйте паузы и осознанность для баланса'
+                    },
+                    melancholic: {
+                        title: 'Меланхолик',
+                        icon: '🌙',
+                        element: 'Земля',
+                        color: '#8B5CF6',
+                        strengths: ['Глубина чувств', 'Творческая чувствительность', 'Эмпатия', 'Способность к рефлексии'],
+                        challenges: ['Склонность к депрессии', 'Чрезмерная самокритика', 'Трудности с лёгкостью'],
+                        practices: ['Свет', 'Тепло', 'Благодарность', 'Чудо дня'],
+                        tip: 'Добавляйте света и тепла, практикуйте благодарность'
+                    },
+                    phlegmatic: {
+                        title: 'Флегматик',
+                        icon: '💧',
+                        element: 'Вода',
+                        color: '#06B6D4',
+                        strengths: ['Спокойствие и уравновешенность', 'Надёжность', 'Терпение', 'Устойчивость к стрессу'],
+                        challenges: ['Инертность', 'Медлительность', 'Трудности с инициативой'],
+                        practices: ['Активные прогулки', 'Массаж', 'Дыхание'],
+                        tip: 'Добавляйте активности и разнообразия в жизнь'
+                    }
+                };
+                return descriptions[type];
+            }
+        };
+        
+        const NATURAL_WISDOM = {
+            temperaments: {
+                sanguine: { id: 'sanguine', name: 'Сангвиник', element: 'Воздух', icon: '🌬️', color: '#F6C445', practices: ['breathing', 'gratitude'], description: 'Воздушный, лёгкий темперамент' },
+                choleric: { id: 'choleric', name: 'Холерик', element: 'Огонь', icon: '🔥', color: '#E85D04', practices: ['warmth_heart', 'antifragile'], description: 'Огненный, волевой темперамент' },
+                melancholic: { id: 'melancholic', name: 'Меланхолик', element: 'Земля', icon: '🌍', color: '#6B5B8C', practices: ['light_morning', 'color_gold'], description: 'Земной, глубокий темперамент' },
+                phlegmatic: { id: 'phlegmatic', name: 'Флегматик', element: 'Вода', icon: '💧', color: '#4A6FA5', practices: ['warmth_tea', 'warmth_footbath'], description: 'Водный, спокойный темперамент' }
+            },
+            planetaryDays: {
+                0: { planet: 'Солнце', name: 'Вс', icon: '☀️', color: '#F6C445', oils: ['апельсин', 'ладан', 'бергамот'], oilEffect: 'Радость и свет' },
+                1: { planet: 'Луна', name: 'Пн', icon: '🌙', color: '#C4C4C4', oils: ['лаванда', 'ромашка', 'мелисса'], oilEffect: 'Покой и сон' },
+                2: { planet: 'Марс', name: 'Вт', icon: '♂️', color: '#DC2626', oils: ['розмарин', 'имбирь'], oilEffect: 'Энергия и воля' },
+                3: { planet: 'Меркурий', name: 'Ср', icon: '☿️', color: '#F59E0B', oils: ['мята', 'эвкалипт', 'лимон'], oilEffect: 'Ясность мысли' },
+                4: { planet: 'Юпитер', name: 'Чт', icon: '♃', color: '#3B82F6', oils: ['кедр', 'сандал', 'пихта'], oilEffect: 'Мудрость' },
+                5: { planet: 'Венера', name: 'Пт', icon: '♀️', color: '#10B981', oils: ['роза', 'герань'], oilEffect: 'Гармония и любовь' },
+                6: { planet: 'Сатурн', name: 'Сб', icon: '♄', color: '#1F2937', oils: ['кипарис', 'можжевельник'], oilEffect: 'Глубина' }
+            },
+            oilsByMood: {
+                heavy: { oils: ['апельсин', 'грейпфрут', 'бергамот'], effect: 'Поднимают настроение' },
+                low_energy: { oils: ['розмарин', 'мята', 'эвкалипт'], effect: 'Пробуждают энергию' },
+                anxious: { oils: ['лаванда', 'ромашка', 'мелисса'], effect: 'Успокаивают' },
+                neutral: { oils: ['кедр', 'сандал', 'ладан'], effect: 'Углубляют осознанность' },
+                hopeful: { oils: ['герань', 'роза'], effect: 'Укрепляют надежду' },
+                grateful: { oils: ['ладан', 'мирра', 'роза'], effect: 'Углубляют благодарность' },
+                light: { oils: ['апельсин', 'лимон', 'мандарин'], effect: 'Усиливают радость' }
+            },
+            getCurrentRhythm: () => {
+                const hour = new Date().getHours();
+                if (hour >= 6 && hour < 9) return { name: 'Утро', quality: 'Пробуждение', key: 'morning' };
+                if (hour >= 9 && hour < 12) return { name: 'Позднее утро', quality: 'Мышление', key: 'lateMorning' };
+                if (hour >= 12 && hour < 15) return { name: 'Полдень', quality: 'Воля', key: 'midday' };
+                if (hour >= 15 && hour < 18) return { name: 'День', quality: 'Социальное', key: 'afternoon' };
+                if (hour >= 18 && hour < 21) return { name: 'Вечер', quality: 'Чувства', key: 'evening' };
+                if (hour >= 21 || hour < 3) return { name: 'Ночь', quality: 'Покой', key: 'night' };
+                return { name: 'Предрассвет', quality: 'Духовное', key: 'preDown' };
+            },
+            getPlanetaryDay: () => NATURAL_WISDOM.planetaryDays[new Date().getDay()],
+            analyzeStateHistory: (history) => {
+                if (!history || history.length === 0) return null;
+                const last7Days = history.filter(h => Date.now() - h.timestamp < 7 * 24 * 60 * 60 * 1000);
+                const stateCounts = {};
+                last7Days.forEach(h => { stateCounts[h.state] = (stateCounts[h.state] || 0) + 1; });
+                const dominantState = Object.entries(stateCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+                let trend = 'stable';
+                if (last7Days.length >= 3) {
+                    const stateValues = { heavy: 1, low_energy: 2, anxious: 3, neutral: 4, hopeful: 5, grateful: 6, light: 7 };
+                    const recent = last7Days.slice(-3).map(h => stateValues[h.state] || 4);
+                    const earlier = last7Days.slice(0, 3).map(h => stateValues[h.state] || 4);
+                    const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+                    const earlierAvg = earlier.reduce((a, b) => a + b, 0) / earlier.length;
+                    if (recentAvg > earlierAvg + 0.5) trend = 'improving';
+                    else if (recentAvg < earlierAvg - 0.5) trend = 'declining';
+                }
+                return { totalEntries: last7Days.length, dominantState, trend };
+            }
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // ДАННЫЕ
+        // ═══════════════════════════════════════════════════════════════
+        
+        const SOUL_STATES = [
+            { id: 'heavy', emoji: '🌑', label: 'Тяжело' },
+            { id: 'low_energy', emoji: '🌒', label: 'Мало сил' },
+            { id: 'anxious', emoji: '🌓', label: 'Тревога' },
+            { id: 'neutral', emoji: '🌔', label: 'Спокойно' },
+            { id: 'hopeful', emoji: '🌕', label: 'Надежда' },
+            { id: 'grateful', emoji: '🌟', label: 'Благодарность' },
+            { id: 'light', emoji: '☀️', label: 'Светло' }
+        ];
+
+        const CATEGORIES = [
+            { id: 'light', name: 'Свет', icon: '☀️' },
+            { id: 'warmth', name: 'Тепло', icon: '🔥' },
+            { id: 'spa', name: 'СПА', icon: '🛁' },
+            { id: 'watercolor', name: 'Акварель', icon: '🎨' },
+            { id: 'walk', name: 'Прогулки', icon: '🚶' },
+            { id: 'breathing', name: 'Дыхание', icon: '🌬️' },
+            { id: 'body', name: 'Тело', icon: '🧘' },
+            { id: 'nondual', name: 'Присутствие', icon: '✨' },
+            { id: 'gratitude', name: 'Благодарность', icon: '🙏' },
+            { id: 'journal', name: 'Дневник', icon: '📝' }
+        ];
+        
+        // Мотивационные сообщения для прогулок
+        const WALK_MOTIVATIONS = {
+            start: [
+                'Каждый шаг — это движение к свету 🌅',
+                'Природа ждёт тебя. Она всегда рада гостям 🌿',
+                'Свежий воздух — лучшее лекарство для души 💨',
+                'Сегодня отличный день для прогулки! ☀️',
+                'Движение — это жизнь. Пора двигаться! 🚶',
+                'Деревья готовы поделиться своей силой 🌳',
+                'Небо ждёт твоего взгляда 🌤️'
+            ],
+            during: [
+                'Ты молодец! Продолжай в том же духе 💪',
+                'Каждая минута на воздухе — подарок телу 🎁',
+                'Замечай красоту вокруг — она везде ✨',
+                'Дыши глубже, чувствуй жизнь 🌬️',
+                'Твоё тело благодарит тебя за движение 🙏'
+            ],
+            complete: [
+                'Отлично! Ты сделал(а) это! 🎉',
+                'Прогулка завершена. Ты стал(а) чуточку сильнее 💪',
+                'Природа поделилась с тобой своей энергией 🌿',
+                'Каждая прогулка — маленькая победа над тьмой ☀️',
+                'Ты заботишься о себе. Это важно! ❤️'
+            ],
+            streak: [
+                'Потрясающе! {days} дней подряд! 🔥',
+                '{days} дней прогулок! Ты формируешь привычку! 🌟',
+                'Серия {days} дней! Так держать! 💪'
+            ],
+            reminder: [
+                'Сегодня ещё не было прогулки. Может, выйти на 10 минут? 🌤️',
+                'Свежий воздух ждёт тебя! 🌿',
+                'Даже короткая прогулка лучше, чем никакой 🚶'
+            ]
+        };
+        
+        // Цели и достижения для прогулок
+        const WALK_ACHIEVEMENTS = [
+            { id: 'first_walk', name: 'Первый шаг', icon: '👣', description: 'Записать первую прогулку', condition: (stats) => stats.totalWalks >= 1 },
+            { id: 'week_streak', name: 'Неделя в движении', icon: '🔥', description: '7 дней подряд', condition: (stats) => stats.currentStreak >= 7 },
+            { id: 'ten_walks', name: 'Десятка', icon: '🎯', description: '10 прогулок', condition: (stats) => stats.totalWalks >= 10 },
+            { id: 'hour_total', name: 'Час на воздухе', icon: '⏱️', description: '60 минут за неделю', condition: (stats) => stats.weekMinutes >= 60 },
+            { id: 'three_hours', name: 'Мастер прогулок', icon: '🏆', description: '180 минут за неделю', condition: (stats) => stats.weekMinutes >= 180 },
+            { id: 'month_streak', name: 'Месяц силы', icon: '💎', description: '30 дней подряд', condition: (stats) => stats.currentStreak >= 30 },
+            { id: 'nature_lover', name: 'Любитель природы', icon: '🌳', description: '5 прогулок в лесу/парке', condition: (stats) => stats.natureWalks >= 5 },
+            { id: 'sunrise_walker', name: 'Ранняя пташка', icon: '🌅', description: '3 прогулки на рассвете', condition: (stats) => stats.sunriseWalks >= 3 },
+            { id: 'sunset_walker', name: 'Вечерний странник', icon: '🌇', description: '3 прогулки на закате', condition: (stats) => stats.sunsetWalks >= 3 }
+        ];
+        
+        // Рекомендации по прогулкам в зависимости от состояния
+        const WALK_RECOMMENDATIONS = {
+            heavy: { duration: 15, type: 'walk_observe', tip: 'При тяжести достаточно короткой прогулки. Главное — выйти.' },
+            low_energy: { duration: 10, type: 'walk_observe', tip: 'Не перенапрягайся. Даже 10 минут на воздухе помогут.' },
+            anxious: { duration: 20, type: 'walk_forest', tip: 'Лес или парк особенно полезны при тревоге.' },
+            neutral: { duration: 30, type: 'walk_observe', tip: 'Хорошее время для осознанной прогулки.' },
+            hopeful: { duration: 30, type: 'walk_beauty', tip: 'Поищи красоту вокруг!' },
+            grateful: { duration: 25, type: 'walk_beauty', tip: 'Прогулка благодарности — замечай, за что благодарен.' },
+            light: { duration: 40, type: 'walk_forest', tip: 'Отличное состояние для долгой прогулки!' }
+        };
+        
+        // Health-инсайты о пользе прогулок
+        const HEALTH_INSIGHTS = [
+            { icon: '🧠', title: 'Мозг', fact: '20 минут прогулки увеличивают приток крови к мозгу на 15%', benefit: 'Улучшение памяти и концентрации' },
+            { icon: '❤️', title: 'Сердце', fact: '30 минут ходьбы снижают риск сердечных заболеваний на 19%', benefit: 'Укрепление сердечно-сосудистой системы' },
+            { icon: '😊', title: 'Настроение', fact: 'Прогулка повышает уровень эндорфинов на 30%', benefit: 'Естественный антидепрессант' },
+            { icon: '💪', title: 'Энергия', fact: '10 минут на воздухе бодрят лучше чашки кофе', benefit: 'Повышение жизненного тонуса' },
+            { icon: '😴', title: 'Сон', fact: 'Дневные прогулки улучшают качество сна на 65%', benefit: 'Глубокий восстанавливающий сон' },
+            { icon: '🌿', title: 'Стресс', fact: '20 минут в парке снижают кортизол на 20%', benefit: 'Снятие напряжения' },
+            { icon: '🦴', title: 'Кости', fact: 'Ходьба укрепляет кости и суставы', benefit: 'Профилактика остеопороза' },
+            { icon: '🔥', title: 'Метаболизм', fact: '30 мин ходьбы сжигают ~150 калорий', benefit: 'Поддержание здорового веса' },
+            { icon: '🧘', title: 'Осознанность', fact: 'Прогулка в природе снижает руминацию на 25%', benefit: 'Меньше навязчивых мыслей' },
+            { icon: '🌳', title: 'Фитонциды', fact: 'Лесной воздух содержит целебные фитонциды', benefit: 'Укрепление иммунитета' }
+        ];
+        
+        // Анализ корреляции прогулок и настроения
+        const analyzeWalkMoodCorrelation = (walks, stateHistory) => {
+            if (walks.length < 3 || stateHistory.length < 3) return null;
+            
+            const stateValues = { heavy: 1, low_energy: 2, anxious: 3, neutral: 4, hopeful: 5, grateful: 6, light: 7 };
+            const last14Days = [];
+            
+            for (let i = 0; i < 14; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                date.setHours(0, 0, 0, 0);
+                const dayEnd = date.getTime() + 24 * 60 * 60 * 1000;
+                
+                const dayWalks = walks.filter(w => {
+                    const wTime = new Date(w.date).getTime();
+                    return wTime >= date.getTime() && wTime < dayEnd;
+                });
+                
+                const dayMoods = stateHistory.filter(s => {
+                    const sTime = new Date(s.date).getTime();
+                    return sTime >= date.getTime() && sTime < dayEnd;
+                });
+                
+                const walkMinutes = dayWalks.reduce((sum, w) => sum + (w.duration || 0), 0);
+                const avgMood = dayMoods.length > 0 
+                    ? dayMoods.reduce((sum, m) => sum + (stateValues[m.state] || 4), 0) / dayMoods.length 
+                    : null;
+                
+                last14Days.push({ date: date.toISOString(), walkMinutes, avgMood, dayOfWeek: date.getDay() });
+            }
+            
+            // Сравнение дней с прогулками и без
+            const daysWithWalks = last14Days.filter(d => d.walkMinutes > 0 && d.avgMood !== null);
+            const daysWithoutWalks = last14Days.filter(d => d.walkMinutes === 0 && d.avgMood !== null);
+            
+            const avgMoodWithWalks = daysWithWalks.length > 0 
+                ? daysWithWalks.reduce((sum, d) => sum + d.avgMood, 0) / daysWithWalks.length 
+                : null;
+            const avgMoodWithoutWalks = daysWithoutWalks.length > 0 
+                ? daysWithoutWalks.reduce((sum, d) => sum + d.avgMood, 0) / daysWithoutWalks.length 
+                : null;
+            
+            // Лучший день недели для прогулок
+            const dayStats = [0, 1, 2, 3, 4, 5, 6].map(day => {
+                const days = last14Days.filter(d => d.dayOfWeek === day);
+                return {
+                    day,
+                    avgMinutes: days.length > 0 ? days.reduce((sum, d) => sum + d.walkMinutes, 0) / days.length : 0
+                };
+            });
+            const bestDay = dayStats.reduce((best, d) => d.avgMinutes > best.avgMinutes ? d : best, dayStats[0]);
+            const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+            
+            return {
+                last14Days: last14Days.reverse(),
+                avgMoodWithWalks,
+                avgMoodWithoutWalks,
+                moodImprovement: avgMoodWithWalks && avgMoodWithoutWalks 
+                    ? ((avgMoodWithWalks - avgMoodWithoutWalks) / avgMoodWithoutWalks * 100).toFixed(0) 
+                    : null,
+                bestDay: dayNames[bestDay.day],
+                bestDayMinutes: Math.round(bestDay.avgMinutes)
+            };
+        };
+
+        const PRACTICES = [
+            // СВЕТ
+            { id: 'light_morning', category: 'light', title: 'Утренний свет', short: 'Встреча с утренним светом', steps: ['Встаньте у окна, выходящего на восток', 'Закройте глаза и почувствуйте тепло света', 'Представьте, как свет наполняет тело', 'Медленно откройте глаза', 'Побудьте в этом состоянии'], duration: 10, bg: '#FFF3C7', states: ['heavy', 'low_energy'] },
+            { id: 'light_candle', category: 'light', title: 'Медитация на свечу', short: 'Созерцание живого огня', steps: ['Зажгите свечу', 'Направьте мягкий взгляд на пламя', 'Наблюдайте за танцем огня', 'Представьте свет внутри вас', 'Закройте глаза, сохранив образ'], duration: 15, bg: '#FFE4C9', states: ['anxious', 'heavy'] },
+            
+            // ТЕПЛО
+            { id: 'warmth_heart', category: 'warmth', title: 'Тепло сердца', short: 'Пробуждение внутреннего тепла', steps: ['Положите ладони на сердце', 'Вспомните момент любви и тепла', 'Представьте огонёк в груди', 'Позвольте теплу распространиться', 'Скажите: «Во мне есть тепло»'], duration: 12, bg: '#FFE8E0', states: ['heavy', 'low_energy'] },
+            { id: 'warmth_tea', category: 'warmth', title: 'Медитация с чаем', short: 'Осознанное питьё тёплого напитка', steps: ['Заварите чашку чая', 'Возьмите чашку двумя руками', 'Почувствуйте тепло в ладонях', 'Вдохните аромат', 'Пейте медленно, чувствуя тепло'], duration: 10, bg: '#FFF0D4', states: ['heavy', 'low_energy', 'anxious'] },
+            { id: 'warmth_footbath', category: 'warmth', title: 'Ванночка для ног', short: 'Прогрев ног с эфирными маслами', steps: ['Приготовьте таз с тёплой водой (38-40°C)', 'Выберите масло по дню или настроению', 'При тяжести: апельсин, грейпфрут', 'При тревоге: лаванда, ромашка', 'При упадке сил: розмарин, мята', 'Добавьте 3-5 капель в воду', 'Опустите ноги и расслабьтесь', 'Побудьте 15-20 минут', 'Наденьте тёплые носки'], duration: 25, bg: '#FFE8E0', states: ['heavy', 'low_energy', 'anxious', 'neutral'] },
+            { id: 'warmth_blanket', category: 'warmth', title: 'Кокон тепла', short: 'Укутывание в одеяло', steps: ['Возьмите тёплое одеяло', 'Укутайтесь полностью', 'Почувствуйте безопасность', 'Дышите медленно', 'Побудьте 15-20 минут'], duration: 20, bg: '#FFF0D4', states: ['heavy', 'anxious'] },
+            { id: 'warmth_self_hug', category: 'warmth', title: 'Объятия себя', short: 'Самосострадание через прикосновение', steps: ['Скрестите руки на груди', 'Обнимите себя мягко', 'Покачивайтесь, если хочется', 'Скажите: «Я забочусь о тебе»', 'Побудьте в объятиях 2-3 минуты'], duration: 5, bg: '#FFE8E0', states: ['heavy', 'anxious', 'low_energy'] },
+            { id: 'warmth_compress', category: 'warmth', title: 'Компресс на печень', short: 'Тёплый компресс для гармонизации', steps: ['Смочите полотенце тёплой водой', 'Лягте на спину', 'Положите на правое подреберье', 'Сверху — грелку или бутылку', 'Укройтесь и расслабьтесь', 'Побудьте 20-30 минут'], duration: 35, bg: '#FFE8E0', states: ['heavy', 'low_energy'] },
+            
+            // АКВАРЕЛЬ
+            { id: 'watercolor_sunrise', category: 'watercolor', title: 'Рассвет', short: 'От тьмы к свету', steps: ['Подготовьте краски', 'Смочите бумагу', 'Нанесите фиолетовый внизу', 'Добавьте красный и оранжевый', 'Завершите жёлтым наверху'], duration: 20, bg: '#FFE4C9', states: ['heavy', 'low_energy', 'hopeful'] },
+            { id: 'watercolor_emotion', category: 'watercolor', title: 'Поток эмоций', short: 'Свободное выражение в цвете', steps: ['Разложите все цвета', 'Смочите бумагу', 'Прислушайтесь к себе', 'Выберите цвет интуитивно', 'Рисуйте как хочется'], duration: 15, bg: '#E8DCFF', states: ['heavy', 'anxious', 'neutral'] },
+            
+            // ПРОГУЛКИ
+            { id: 'walk_sunrise', category: 'walk', title: 'На рассвете', short: 'Встреча нового дня', steps: ['Встаньте до рассвета', 'Выйдите на место с видом на восток', 'Наблюдайте, как меняется небо', 'Встретьте первые лучи', 'Поблагодарите за новый день'], duration: 30, bg: '#FFE4C9', states: ['heavy', 'low_energy'] },
+            { id: 'walk_sunset', category: 'walk', title: 'На закате', short: 'Завершение дня', steps: ['Выйдите за час до заката', 'Идите медленно', 'Наблюдайте игру красок', 'Отпустите заботы дня', 'Вернитесь в сумерках'], duration: 40, bg: '#F4A4A4', states: ['anxious', 'neutral'] },
+            { id: 'walk_forest', category: 'walk', title: 'Лесная', short: 'Погружение в лес', steps: ['Войдите в лес медленно', 'Прислушайтесь', 'Вдохните запах леса', 'Прикоснитесь к дереву', 'Просто побудьте'], duration: 45, bg: '#DCF5DC', states: ['anxious', 'hopeful'] },
+            { id: 'walk_observe', category: 'walk', title: 'Наблюдение', short: 'Осознанная прогулка', steps: ['Выйдите без цели', 'Идите медленнее обычного', 'Замечайте детали вокруг', 'Посмотрите на небо', 'Почувствуйте воздух'], duration: 25, bg: '#FAF6EE', states: ['neutral', 'hopeful', 'grateful'] },
+            { id: 'walk_beauty', category: 'walk', title: 'Поиск красоты', short: 'Найти 5 красивых вещей', steps: ['Поставьте задачу: найти 5 красивых вещей', 'Выйдите с открытым взглядом', 'Ищите красоту везде', 'Остановитесь у каждой находки', 'Вернитесь наполненными'], duration: 30, bg: '#FEE8D6', states: ['neutral', 'hopeful', 'grateful'] },
+            
+            // ДЫХАНИЕ
+            { id: 'breathing', category: 'breathing', title: 'Якорное дыхание', short: 'Возвращение к настоящему', steps: ['Сядьте удобно', 'Найдите, где чувствуете дыхание', 'Направьте внимание туда', 'Просто наблюдайте', 'Когда ум уходит — вернитесь'], duration: 10, bg: '#E8F4F8', states: ['anxious', 'heavy', 'neutral'] },
+            
+            // ТЕЛО
+            { id: 'mbct_bodyscan', category: 'body', title: 'Сканирование тела', short: 'Телесное осознавание', steps: ['Лягте удобно', 'Направьте внимание на пальцы ног', 'Медленно поднимайтесь вверх', 'Замечайте ощущения', 'Дойдите до макушки'], duration: 20, bg: '#E8EEF4', states: ['anxious', 'low_energy'] },
+            
+            // ПРИСУТСТВИЕ
+            { id: 'nondual_presence', category: 'nondual', title: 'Чистое присутствие', short: 'Осознавание, которое есть', steps: ['Сядьте удобно', 'Заметьте звуки вокруг', 'Кто их осознаёт?', 'Заметьте ощущения', 'Отдохните в открытости'], duration: 15, bg: '#F5F0FF', states: ['neutral', 'hopeful', 'grateful'] },
+            
+            // БЛАГОДАРНОСТЬ
+            { id: 'gratitude', category: 'gratitude', title: 'Вечерняя благодарность', short: 'Три момента благодарности', steps: ['Устройтесь перед сном', 'Вспомните день', 'Найдите три момента благодарности', 'Почувствуйте благодарность телом', 'Засыпайте с этим'], duration: 5, bg: '#FFF8E8', states: ['heavy', 'neutral', 'hopeful', 'grateful'] },
+            
+            // ДНЕВНИК
+            { id: 'journal_deep', category: 'journal', title: 'Глубокое письмо', short: 'Письменное исследование', steps: ['Возьмите бумагу и ручку', 'Напишите: «Что сейчас во мне?»', 'Пишите без остановки 10 минут', 'Не редактируйте', 'Прочитайте написанное'], duration: 15, bg: '#FAF6EE', states: ['neutral', 'hopeful'] },
+            
+            // БАНЯ И СПА
+            { id: 'sauna', category: 'spa', title: 'Посещение бани', short: 'Глубокое прогревание тела и души', steps: ['Подготовьте эфирные масла по дню недели', 'Вс/☀️: апельсин, ладан — радость', 'Пн/🌙: лаванда, эвкалипт — покой', 'Вт/♂️: розмарин, можжевельник — сила', 'Ср/☿️: мята, лимон — ясность', 'Чт/♃: пихта, кедр — мудрость', 'Пт/♀️: роза, герань — гармония', 'Сб/♄: кипарис, сосна — очищение', 'Добавьте 5-7 капель в ковш с водой', 'Первый заход 5-7 минут — привыкание', 'Отдых 10-15 минут, пейте воду или чай', 'Второй заход 10-15 минут с веником', 'Массаж веником — от ног к голове', 'Снова отдых и питьё', 'Третий заход — созерцание и благодарность', 'После бани — тёплый травяной чай', 'Отдых минимум 30 минут'], duration: 120, bg: '#FFE8E0', states: ['heavy', 'low_energy', 'anxious', 'neutral'] },
+            
+            { id: 'bath_full', category: 'spa', title: 'Тёплая ванна', short: 'Целительное погружение с маслами', steps: ['Наполните ванну тёплой водой (37-38°C)', 'Выберите масла по состоянию:', 'При тяжести: апельсин + бергамот', 'При тревоге: лаванда + ромашка', 'При упадке: розмарин + грейпфрут', 'Для баланса: герань + ладан', 'Смешайте 8-10 капель с эмульгатором', 'Эмульгатор: соль, сливки или мёд', 'Добавьте смесь в воду', 'Погрузитесь по плечи', 'Дышите глубоко, вдыхая аромат', 'Представьте, как тепло растворяет тяжесть', 'Побудьте 20-30 минут', 'После — укутайтесь и отдохните'], duration: 40, bg: '#FFE8E0', states: ['heavy', 'low_energy', 'anxious'] },
+            
+            { id: 'massage_self', category: 'spa', title: 'Самомассаж с маслами', short: 'Заботливое прикосновение к себе', steps: ['Подготовьте базовое масло (миндальное, кунжутное)', 'Добавьте эфирные масла (2-3 капли на ст.л.):', 'Для расслабления: лаванда, ромашка', 'Для энергии: розмарин, апельсин', 'Для заземления: кедр, ветивер', 'Согрейте масло в ладонях', 'Начните со стоп — круговые движения', 'Поднимайтесь по голеням, бёдрам', 'Мягко массируйте живот по часовой стрелке', 'Разомните плечи и шею', 'Помассируйте руки от кистей к плечам', 'Завершите массажем лица и головы', 'Оставьте масло впитаться 15-20 минут', 'Примите тёплый душ или оставьте до утра'], duration: 30, bg: '#FEE8D6', states: ['heavy', 'low_energy', 'anxious', 'neutral'] },
+            
+            { id: 'massage_feet_evening', category: 'spa', title: 'Вечерний массаж стоп', short: 'Расслабление через стопы с маслами', steps: ['Приготовьте масло по дню/состоянию', 'Вечерние масла: лаванда, ладан, кедр', 'Смешайте 3-4 капли с базовым маслом', 'Сядьте удобно, согните одну ногу', 'Нанесите масло и разогрейте стопу', 'Разомните подошву большими пальцами', 'Пройдите каждый палец, потяните', 'Помассируйте свод стопы', 'Разотрите пятку круговыми движениями', 'Погладьте от пальцев к щиколотке', 'Повторите с другой стопой', 'Наденьте хлопковые носки', 'Полежите с приподнятыми ногами'], duration: 20, bg: '#FFE8E0', states: ['anxious', 'neutral', 'low_energy'] },
+            
+            // ЛЮБЯЩАЯ ДОБРОТА
+            { id: 'loving_kindness', category: 'nondual', title: 'Любящая доброта', short: 'Метта-медитация для сердца', steps: ['Сядьте удобно, закройте глаза', 'Положите руку на сердце', 'Направьте любовь к себе:', '«Пусть я буду счастлив(а)»', '«Пусть я буду здоров(а)»', '«Пусть я буду в безопасности»', '«Пусть я буду свободен(на) от страданий»', 'Вспомните близкого человека', 'Направьте ему те же пожелания', 'Расширьте на всех знакомых', 'Расширьте на всех существ', '«Пусть все существа будут счастливы»', 'Побудьте в этом состоянии'], duration: 15, bg: '#FFE4E4', states: ['heavy', 'anxious', 'neutral', 'hopeful', 'grateful'] },
+            
+            // ПРОЩЕНИЕ
+            { id: 'forgiveness', category: 'nondual', title: 'Практика прощения', short: 'Освобождение от груза прошлого', steps: ['Сядьте спокойно, закройте глаза', 'Вспомните ситуацию, которая тяготит', 'Признайте боль, которую она причинила', 'Скажите: «Я признаю эту боль»', 'Подумайте о человеке (или себе)', 'Он/она тоже страдает/страдал(а)', 'Скажите: «Я прощаю тебя»', 'Или: «Я прощаю себя»', 'Не обязательно забывать — только отпустить', 'Представьте, как груз уходит', 'Почувствуйте лёгкость в груди', 'Поблагодарите себя за этот шаг'], duration: 20, bg: '#F5F0FF', states: ['heavy', 'neutral'] },
+            
+            // КТО НАБЛЮДАЕТ
+            { id: 'who_observes', category: 'nondual', title: 'Кто наблюдает?', short: 'Самоисследование по адвайте', steps: ['Сядьте в тишине', 'Заметьте звуки вокруг', 'Спросите: «Кто слышит эти звуки?»', 'Заметьте ощущения в теле', 'Спросите: «Кто чувствует это тело?»', 'Заметьте мысли', 'Спросите: «Кто наблюдает мысли?»', 'Не ищите ответ умом', 'Просто будьте с вопросом', 'Заметьте: наблюдатель не может быть объектом', 'То, что вы есть — это само осознавание', 'Отдохните как это осознавание'], duration: 15, bg: '#F5F0FF', states: ['neutral', 'hopeful', 'grateful', 'light'] },
+            
+            // ЧУДО ДНЯ
+            { id: 'wonder_of_day', category: 'gratitude', title: 'Чудо дня', short: 'Вечерняя рефлексия', steps: ['Вечером, перед сном', 'Вспомните прошедший день', 'Пройдите его в обратном порядке', 'От вечера к утру, кадр за кадром', 'Найдите момент удивления или красоты', 'Это и есть «чудо дня»', 'Задержитесь на нём', 'Позвольте чувству благодарности наполнить вас', 'Отпустите день с миром', 'Засыпайте с образом чуда'], duration: 10, bg: '#FFF8E8', states: ['neutral', 'hopeful', 'grateful'] },
+            
+            // ПСИХООБРАЗОВАНИЕ
+            { id: 'psychoeducation', category: 'journal', title: 'Понимание депрессии', short: 'Знание — первый шаг к исцелению', steps: ['Депрессия — это не слабость характера', 'Это состояние, затрагивающее тело и душу', 'Симптомы: упадок сил, потеря интереса', 'Тяжесть, нарушения сна и аппетита', 'Негативные мысли — симптом, не правда', 'Мысли — это не факты о вас', 'Депрессия искажает восприятие', 'Важно: это временное состояние', 'Оно поддаётся работе и лечению', 'Практики, движение, свет — помогают', 'При тяжёлых симптомах — к специалисту', 'Вы не одиноки в этом'], duration: 10, bg: '#E8F4F8', states: ['heavy', 'low_energy', 'anxious', 'neutral'] }
+        ];
+        
+        // Горячие линии помощи
+        const CRISIS_LINES = [
+            { name: 'Телефон доверия', phone: '8-800-2000-122', note: 'Бесплатно, круглосуточно' },
+            { name: 'Центр экстренной психологической помощи МЧС', phone: '8-499-216-50-50', note: 'Круглосуточно' },
+            { name: 'Психологическая помощь (Москва)', phone: '051', note: 'Бесплатно с мобильного' },
+            { name: 'Помощь при суицидальных мыслях', phone: '8-800-2000-122', note: 'Анонимно, бесплатно' }
+        ];
+        
+        // PHQ-9 опросник
+        const PHQ9_QUESTIONS = [
+            'Мало интереса или удовольствия от дел',
+            'Подавленность, тоска, безнадёжность',
+            'Проблемы со сном (бессонница или сонливость)',
+            'Усталость, упадок сил',
+            'Плохой аппетит или переедание',
+            'Плохое мнение о себе, чувство неудачника',
+            'Трудности сосредоточиться (читать, смотреть ТВ)',
+            'Замедленность или беспокойство в движениях',
+            'Мысли о том, что лучше бы умереть'
+        ];
+        
+        const PHQ9_OPTIONS = [
+            { label: 'Совсем нет', value: 0 },
+            { label: 'Несколько дней', value: 1 },
+            { label: 'Больше половины дней', value: 2 },
+            { label: 'Почти каждый день', value: 3 }
+        ];
+
+        const QUOTES = [
+            { text: 'Свет — это жизнь, и жизнь — это свет', author: 'Олаф Кооб' },
+            { text: 'Тепло размягчает затвердевшее', author: 'Олаф Кооб' },
+            { text: 'Жёлтый — ближайший к свету цвет', author: 'И.В. Гёте' },
+            { text: 'Самая тёмная ночь — перед рассветом', author: 'Народная мудрость' },
+            { text: 'Природа — великий целитель', author: 'Гиппократ' }
+        ];
+
+        const LOCAL_RESPONSES = [
+            'Я слышу тебя. Расскажи подробнее 🌤️',
+            'Спасибо, что делишься. Это важно.',
+            'Иногда просто побыть рядом — уже много.',
+            'Даже в тёмной ночи звёзды светят.',
+            'Тепло приходит постепенно, как весна.',
+            'Ты не один в этом.'
+        ];
+
+        // ═══════════════════════════════════════════════════════════════
+        // КОМПОНЕНТЫ
+        // ═══════════════════════════════════════════════════════════════
+
+        function BottomNav({ page, setPage }) {
+            const items = [
+                { id: 'home', icon: '🏠', label: 'Главная' },
+                { id: 'day', icon: '📅', label: 'День' },
+                { id: 'walks', icon: '🚶', label: 'Прогулки' },
+                { id: 'practices', icon: '📖', label: 'Практики' },
+                { id: 'profile', icon: '👤', label: 'Профиль' }
+            ];
+            return (
+                <nav className="bottom-nav">
+                    {items.map(item => (
+                        <div key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => setPage(item.id)}>
+                            <span className="nav-icon">{item.icon}</span>
+                            <span>{item.label}</span>
+                        </div>
+                    ))}
+                </nav>
+            );
+        }
+
+        function HomePage({ setPage, setPractice }) {
+            const [state, setState] = useState('neutral');
+            const [quote] = useState(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+            const profile = DB.getProfile();
+            const stateHistory = DB.getStateHistory();
+            const hour = new Date().getHours();
+            const greeting = hour < 6 ? 'Доброй ночи' : hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
+            const planetaryDay = NATURAL_WISDOM.getPlanetaryDay();
+            const rhythm = NATURAL_WISDOM.getCurrentRhythm();
+            
+            useEffect(() => { DB.addState(state); }, [state]);
+            
+            // Рекомендованная практика
+            const stateRecs = {
+                heavy: ['light_morning', 'warmth_heart', 'warmth_footbath'],
+                low_energy: ['warmth_tea', 'walk_sunrise', 'warmth_footbath'],
+                anxious: ['breathing', 'warmth_blanket', 'walk_forest'],
+                neutral: ['nondual_presence', 'journal_deep', 'walk_observe'],
+                hopeful: ['watercolor_sunrise', 'gratitude', 'walk_beauty'],
+                grateful: ['gratitude', 'walk_beauty'],
+                light: ['watercolor_emotion', 'walk_observe']
+            };
+            const recPracticeId = stateRecs[state]?.[0] || 'breathing';
+            const recPractice = PRACTICES.find(p => p.id === recPracticeId);
+            
+            return (
+                <div className="fade-in">
+                    <h1 className="greeting">{greeting}{profile.name ? `, ${profile.name}` : ''} ✨</h1>
+                    <p className="greeting-sub">{rhythm.name} — {rhythm.quality}</p>
+                    
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                        <span className="planet-badge" style={{ background: planetaryDay.color + '20', color: planetaryDay.color }}>
+                            {planetaryDay.icon} {planetaryDay.name}
+                        </span>
+                    </div>
+
+                    <h3>Как на душе?</h3>
+                    <div className="soul-states">
+                        {SOUL_STATES.map(s => (
+                            <div key={s.id} className={`soul-chip ${state === s.id ? 'active' : ''}`} onClick={() => setState(s.id)}>
+                                <span className="soul-emoji">{s.emoji}</span>
+                                <span className="soul-label">{s.label}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {recPractice && (
+                        <div className="recommendation-card" onClick={() => { setPractice(recPractice); setPage('practice'); }}>
+                            <div className="recommendation-title">💡 Рекомендуем</div>
+                            <h3>{recPractice.title}</h3>
+                            <p className="recommendation-reason">{recPractice.short}</p>
+                            <button className="btn btn-primary btn-small">Начать</button>
+                        </div>
+                    )}
+
+                    <div className="grid-2">
+                        <div className="card card-clickable" onClick={() => setPage('day')}>
+                            <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>📅</div>
+                            <strong>Мой день</strong>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>План на сегодня</p>
+                        </div>
+                        <div className="card card-clickable" onClick={() => setPage('journal')}>
+                            <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>📝</div>
+                            <strong>Дневник</strong>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Записать мысли</p>
+                        </div>
+                    </div>
+
+                    {/* Вечерняя ванночка */}
+                    {hour >= 19 && hour <= 22 && (
+                        <div className="card" style={{ background: '#F0FDF4', marginTop: '0.5rem' }} onClick={() => { const p = PRACTICES.find(pr => pr.id === 'warmth_footbath'); if(p) { setPractice(p); setPage('practice'); } }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '1.5rem' }}>🛁</span>
+                                <div>
+                                    <strong>Вечерняя ванночка</strong>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                        Масла дня: {planetaryDay.oils.join(', ')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* СПА на выходных */}
+                    {(new Date().getDay() === 0 || new Date().getDay() === 6) && (
+                        <div className="card" style={{ background: '#FEF3C7', marginTop: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '1.25rem' }}>♨️</span>
+                                <strong>Выходной — время для СПА</strong>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                <button className="btn btn-small btn-secondary" onClick={() => { const p = PRACTICES.find(pr => pr.id === 'sauna'); if(p) { setPractice(p); setPage('practice'); } }}>
+                                    🧖 Баня
+                                </button>
+                                <button className="btn btn-small btn-secondary" onClick={() => { const p = PRACTICES.find(pr => pr.id === 'bath_full'); if(p) { setPractice(p); setPage('practice'); } }}>
+                                    🛁 Ванна
+                                </button>
+                                <button className="btn btn-small btn-secondary" onClick={() => { const p = PRACTICES.find(pr => pr.id === 'massage_self'); if(p) { setPractice(p); setPage('practice'); } }}>
+                                    💆 Массаж
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Напоминание о бане в запланированный день */}
+                    {(() => {
+                        const saunaDay = DB.getSaunaDay();
+                        const today = new Date().getDay();
+                        const dayNames = ['воскресенье', 'понедельник', 'вторник', 'среду', 'четверг', 'пятницу', 'субботу'];
+                        const dayOils = planetaryDay.oils;
+                        
+                        if (saunaDay !== null && saunaDay === today) {
+                            return (
+                                <div className="card" style={{ background: 'linear-gradient(135deg, #FEE8D6, #FFE4C9)', marginTop: '0.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                        <span style={{ fontSize: '1.5rem' }}>🧖</span>
+                                        <div>
+                                            <strong>Сегодня — день бани!</strong>
+                                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                Масла дня: {dayOils.join(', ')} — {planetaryDay.oilEffect.toLowerCase()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        className="btn btn-primary btn-small" 
+                                        onClick={() => { const p = PRACTICES.find(pr => pr.id === 'sauna'); if(p) { setPractice(p); setPage('practice'); } }}
+                                    >
+                                        Открыть практику
+                                    </button>
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()}
+                    
+                    {/* Чудо дня вечером */}
+                    {hour >= 21 && (
+                        <div className="card card-clickable" style={{ background: '#F5F0FF', marginTop: '0.5rem' }} onClick={() => { const p = PRACTICES.find(pr => pr.id === 'wonder_of_day'); if(p) { setPractice(p); setPage('practice'); } }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '1.25rem' }}>✨</span>
+                                <div>
+                                    <strong>Чудо дня</strong>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Вечерняя рефлексия</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="quote-card" style={{ marginTop: '0.75rem' }}>
+                        <p className="quote-text">«{quote.text}»</p>
+                        <p className="quote-author">— {quote.author}</p>
+                    </div>
+                </div>
+            );
+        }
+
+        function DayPage({ setPage, setPractice }) {
+            const hour = new Date().getHours();
+            const planetaryDay = NATURAL_WISDOM.getPlanetaryDay();
+            
+            const dayPlan = [
+                { time: '6-9', name: 'Утро', icon: '🌅', practices: ['light_morning', 'breathing'], active: hour >= 6 && hour < 9 },
+                { time: '9-12', name: 'Позднее утро', icon: '💭', practices: ['journal_deep', 'psychoeducation'], active: hour >= 9 && hour < 12 },
+                { time: '12-15', name: 'Полдень', icon: '⚡', practices: ['walk_observe', 'warmth_heart'], active: hour >= 12 && hour < 15 },
+                { time: '15-18', name: 'День', icon: '👥', practices: ['gratitude', 'loving_kindness'], active: hour >= 15 && hour < 18 },
+                { time: '18-20', name: 'Вечер', icon: '🎨', practices: ['watercolor_emotion', 'walk_sunset'], active: hour >= 18 && hour < 20 },
+                { time: '20-22', name: 'СПА-время', icon: '🛁', practices: ['warmth_footbath', 'bath_full', 'massage_self'], oils: planetaryDay.oils, active: hour >= 20 && hour < 22 },
+                { time: '22-23', name: 'Перед сном', icon: '🌙', practices: ['wonder_of_day', 'gratitude'], active: hour >= 22 && hour < 23 }
+            ];
+            
+            return (
+                <div className="fade-in">
+                    <h1>Мой день</h1>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                        {planetaryDay.icon} {planetaryDay.planet} — {planetaryDay.oilEffect}
+                    </p>
+                    
+                    {dayPlan.map((period, idx) => (
+                        <div key={idx} className={`day-period ${period.active ? 'active' : ''}`}>
+                            <div className="day-period-header">
+                                <span className="day-period-icon">{period.icon}</span>
+                                <strong>{period.name}</strong>
+                                <span className="day-period-time">{period.time}</span>
+                            </div>
+                            {period.oils && (
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                    🌿 Масла: {period.oils.join(', ')}
+                                </p>
+                            )}
+                            {period.active && (
+                                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                                    {period.practices.map(pId => {
+                                        const p = PRACTICES.find(pr => pr.id === pId);
+                                        if (!p) return null;
+                                        return (
+                                            <button key={pId} className="btn btn-primary btn-small" onClick={() => { setPractice(p); setPage('practice'); }}>
+                                                {p.title}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        function PracticesPage({ setPage, setPractice }) {
+            const [cat, setCat] = useState(null);
+            const filtered = cat ? PRACTICES.filter(p => p.category === cat) : PRACTICES;
+            
+            return (
+                <div className="fade-in">
+                    <h1>Практики</h1>
+                    <div className="category-pills">
+                        <span className={`category-pill ${!cat ? 'active' : ''}`} onClick={() => setCat(null)}>Все</span>
+                        {CATEGORIES.map(c => (
+                            <span key={c.id} className={`category-pill ${cat === c.id ? 'active' : ''}`} onClick={() => setCat(c.id)}>
+                                {c.icon} {c.name}
+                            </span>
+                        ))}
+                    </div>
+                    
+                    {filtered.map(p => (
+                        <div key={p.id} className="card card-clickable" style={{ background: p.bg }} onClick={() => { setPractice(p); setPage('practice'); }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                                <span>{CATEGORIES.find(c => c.id === p.category)?.icon}</span>
+                                <strong>{p.title}</strong>
+                            </div>
+                            <p style={{ fontSize: '0.85rem' }}>{p.short}</p>
+                            <div className="practice-meta">
+                                <span>⏱️ {p.duration} мин</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // ТРЕКЕР ПРОГУЛОК
+        // ═══════════════════════════════════════════════════════════════
+        
+        function WalkTrackerPage({ setPage, setPractice }) {
+            const [stats, setStats] = useState(DB.getWalkStats());
+            const [showAddWalk, setShowAddWalk] = useState(false);
+            const [showHistory, setShowHistory] = useState(false);
+            const [showAnalytics, setShowAnalytics] = useState(false);
+            const [showHealthInfo, setShowHealthInfo] = useState(false);
+            const [walkDuration, setWalkDuration] = useState(30);
+            const [walkType, setWalkType] = useState('observe');
+            const [walkMood, setWalkMood] = useState('neutral');
+            const [walkNotes, setWalkNotes] = useState('');
+            const [motivation, setMotivation] = useState('');
+            const [activeWalk, setActiveWalk] = useState(null);
+            const [walkTimer, setWalkTimer] = useState(0);
+            const [healthInsight, setHealthInsight] = useState(HEALTH_INSIGHTS[Math.floor(Math.random() * HEALTH_INSIGHTS.length)]);
+            
+            const goal = DB.getWalkGoal();
+            const stateHistory = DB.getStateHistory();
+            const walks = DB.getWalks();
+            const currentState = stateHistory.length > 0 ? stateHistory[stateHistory.length - 1].state : 'neutral';
+            const recommendation = WALK_RECOMMENDATIONS[currentState] || WALK_RECOMMENDATIONS.neutral;
+            const correlation = analyzeWalkMoodCorrelation(walks, stateHistory);
+            
+            // Получить случайную мотивацию
+            const getMotivation = (type) => {
+                const messages = WALK_MOTIVATIONS[type];
+                return messages[Math.floor(Math.random() * messages.length)];
+            };
+            
+            // Проверка достижений
+            const checkAchievements = () => {
+                const earnedAchievements = WALK_ACHIEVEMENTS.filter(a => a.condition(stats));
+                return earnedAchievements;
+            };
+            
+            // Таймер для активной прогулки
+            useEffect(() => {
+                let interval;
+                if (activeWalk) {
+                    interval = setInterval(() => {
+                        setWalkTimer(Math.floor((Date.now() - activeWalk) / 1000));
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [activeWalk]);
+            
+            // Начать прогулку
+            const startWalk = () => {
+                setActiveWalk(Date.now());
+                setMotivation(getMotivation('start'));
+            };
+            
+            // Завершить прогулку
+            const finishWalk = () => {
+                const duration = Math.round(walkTimer / 60);
+                if (duration > 0) {
+                    const hour = new Date().getHours();
+                    let timeOfDay = 'day';
+                    if (hour >= 5 && hour < 8) timeOfDay = 'sunrise';
+                    else if (hour >= 17 && hour < 20) timeOfDay = 'sunset';
+                    else if (hour >= 20 || hour < 5) timeOfDay = 'night';
+                    
+                    DB.addWalk({
+                        duration,
+                        type: walkType,
+                        mood: walkMood,
+                        notes: walkNotes,
+                        timeOfDay
+                    });
+                    setStats(DB.getWalkStats());
+                    setMotivation(getMotivation('complete'));
+                }
+                setActiveWalk(null);
+                setWalkTimer(0);
+                setWalkNotes('');
+            };
+            
+            // Добавить прогулку вручную
+            const addManualWalk = () => {
+                const hour = new Date().getHours();
+                let timeOfDay = 'day';
+                if (hour >= 5 && hour < 8) timeOfDay = 'sunrise';
+                else if (hour >= 17 && hour < 20) timeOfDay = 'sunset';
+                
+                DB.addWalk({
+                    duration: walkDuration,
+                    type: walkType,
+                    mood: walkMood,
+                    notes: walkNotes,
+                    timeOfDay
+                });
+                setStats(DB.getWalkStats());
+                setShowAddWalk(false);
+                setWalkNotes('');
+                setMotivation(getMotivation('complete'));
+            };
+            
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+            
+            const achievements = checkAchievements();
+            const weekProgress = Math.min(100, (stats.weekMinutes / goal.weeklyMinutes) * 100);
+            
+            // Экран аналитики здоровья
+            if (showAnalytics) {
+                const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+                const maxMinutes = correlation?.last14Days ? Math.max(...correlation.last14Days.map(d => d.walkMinutes), 60) : 60;
+                
+                return (
+                    <div className="fade-in">
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                            <button className="btn btn-secondary btn-small" onClick={() => setShowAnalytics(false)}>← Назад</button>
+                            <h2 style={{ marginLeft: '0.75rem' }}>📊 Аналитика</h2>
+                        </div>
+                        
+                        {/* Корреляция настроение-прогулки */}
+                        {correlation?.moodImprovement && (
+                            <div className="card" style={{ background: '#F0FDF4', marginBottom: '0.75rem' }}>
+                                <h3 style={{ marginBottom: '0.5rem' }}>🧠 Влияние на настроение</h3>
+                                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--harmony-green)', textAlign: 'center' }}>
+                                    +{correlation.moodImprovement}%
+                                </div>
+                                <p style={{ fontSize: '0.85rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                    улучшение настроения в дни с прогулками
+                                </p>
+                            </div>
+                        )}
+                        
+                        {/* График за 14 дней */}
+                        {correlation?.last14Days && (
+                            <div className="card" style={{ marginBottom: '0.75rem' }}>
+                                <h3 style={{ marginBottom: '0.75rem' }}>📈 Последние 14 дней</h3>
+                                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100px' }}>
+                                    {correlation.last14Days.map((d, idx) => {
+                                        const height = d.walkMinutes > 0 ? Math.max(10, (d.walkMinutes / maxMinutes) * 100) : 5;
+                                        const date = new Date(d.date);
+                                        const isToday = date.toDateString() === new Date().toDateString();
+                                        return (
+                                            <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                <div style={{ 
+                                                    width: '100%', 
+                                                    height: `${height}%`,
+                                                    background: d.walkMinutes > 0 
+                                                        ? `linear-gradient(to top, var(--amber), var(--golden-light))` 
+                                                        : 'var(--earth-light)',
+                                                    borderRadius: '4px 4px 0 0',
+                                                    border: isToday ? '2px solid var(--amber)' : 'none'
+                                                }} />
+                                                <span style={{ fontSize: '0.55rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                                                    {date.getDate()}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
+                                    <span>14 дней назад</span>
+                                    <span>Сегодня</span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Лучший день */}
+                        {correlation?.bestDay && (
+                            <div className="card" style={{ marginBottom: '0.75rem' }}>
+                                <h3 style={{ marginBottom: '0.5rem' }}>🏆 Лучший день для прогулок</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                                    <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--amber)' }}>{correlation.bestDay}</span>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                        в среднем {correlation.bestDayMinutes} мин
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Статистика по типам */}
+                        <div className="card" style={{ marginBottom: '0.75rem' }}>
+                            <h3 style={{ marginBottom: '0.5rem' }}>🌿 Типы прогулок</h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '0.85rem' }}>
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem' }}>🌳</div>
+                                    <div style={{ fontWeight: 'bold' }}>{stats.natureWalks}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>в природе</div>
+                                </div>
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem' }}>🌅</div>
+                                    <div style={{ fontWeight: 'bold' }}>{stats.sunriseWalks}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>на рассвете</div>
+                                </div>
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem' }}>🌇</div>
+                                    <div style={{ fontWeight: 'bold' }}>{stats.sunsetWalks}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>на закате</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Сравнение с нормой ВОЗ */}
+                        <div className="card" style={{ background: '#EFF6FF' }}>
+                            <h3 style={{ marginBottom: '0.5rem' }}>📋 Сравнение с нормой ВОЗ</h3>
+                            <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                                ВОЗ рекомендует 150 минут умеренной активности в неделю.
+                            </p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <div style={{ flex: 1 }}>
+                                    <div className="progress-bar" style={{ height: '10px' }}>
+                                        <div className="progress-fill" style={{ width: `${Math.min(100, stats.weekMinutes / 150 * 100)}%` }}></div>
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>{Math.round(stats.weekMinutes / 150 * 100)}%</span>
+                            </div>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.5rem' }}>
+                                {stats.weekMinutes >= 150 
+                                    ? '✅ Вы выполняете норму!' 
+                                    : `Осталось ${150 - stats.weekMinutes} минут до нормы`}
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
+            
+            // Экран информации о здоровье
+            if (showHealthInfo) {
+                return (
+                    <div className="fade-in">
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                            <button className="btn btn-secondary btn-small" onClick={() => setShowHealthInfo(false)}>← Назад</button>
+                            <h2 style={{ marginLeft: '0.75rem' }}>❤️ Польза прогулок</h2>
+                        </div>
+                        
+                        {HEALTH_INSIGHTS.map((insight, idx) => (
+                            <div key={idx} className="card" style={{ marginBottom: '0.5rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <span style={{ fontSize: '2rem' }}>{insight.icon}</span>
+                                    <div>
+                                        <strong>{insight.title}</strong>
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0.25rem 0' }}>{insight.fact}</p>
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--harmony-green)' }}>→ {insight.benefit}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
+            
+            // История прогулок
+            if (showHistory) {
+                return (
+                    <div className="fade-in">
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                            <button className="btn btn-secondary btn-small" onClick={() => setShowHistory(false)}>← Назад</button>
+                            <h2 style={{ marginLeft: '0.75rem' }}>История прогулок</h2>
+                        </div>
+                        
+                        {walks.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🚶</div>
+                                <p style={{ color: 'var(--text-secondary)' }}>Прогулок пока нет</p>
+                            </div>
+                        ) : (
+                            walks.slice().reverse().slice(0, 20).map((w, idx) => {
+                                const date = new Date(w.date);
+                                const typeIcons = { sunrise: '🌅', sunset: '🌇', forest: '🌳', observe: '👁️', beauty: '✨', active: '🏃', night: '🌙', day: '☀️' };
+                                return (
+                                    <div key={idx} className="card" style={{ marginBottom: '0.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <span style={{ fontSize: '1.25rem', marginRight: '0.5rem' }}>{typeIcons[w.timeOfDay] || '🚶'}</span>
+                                                <strong>{w.duration} мин</strong>
+                                            </div>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                                {date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                                            </span>
+                                        </div>
+                                        {w.notes && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{w.notes}</p>}
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                );
+            }
+            
+            // Добавление прогулки вручную
+            if (showAddWalk) {
+                return (
+                    <div className="fade-in">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                            <button className="btn btn-secondary btn-small" onClick={() => setShowAddWalk(false)}>Отмена</button>
+                            <button className="btn btn-primary btn-small" onClick={addManualWalk}>Сохранить</button>
+                        </div>
+                        
+                        <h2>Записать прогулку</h2>
+                        
+                        <div className="card" style={{ marginTop: '1rem' }}>
+                            <h3 style={{ marginBottom: '0.5rem' }}>Длительность: {walkDuration} мин</h3>
+                            <input 
+                                type="range" 
+                                min="5" 
+                                max="120" 
+                                step="5" 
+                                value={walkDuration} 
+                                onChange={e => setWalkDuration(parseInt(e.target.value))}
+                                style={{ width: '100%' }}
+                            />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
+                                <span>5 мин</span>
+                                <span>1 час</span>
+                                <span>2 часа</span>
+                            </div>
+                        </div>
+                        
+                        <div className="card" style={{ marginTop: '0.75rem' }}>
+                            <h3 style={{ marginBottom: '0.5rem' }}>Тип прогулки</h3>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                {[
+                                    { id: 'observe', icon: '👁️', label: 'Наблюдение' },
+                                    { id: 'forest', icon: '🌳', label: 'Лес/Парк' },
+                                    { id: 'active', icon: '🏃', label: 'Активная' },
+                                    { id: 'beauty', icon: '✨', label: 'Красота' }
+                                ].map(t => (
+                                    <button 
+                                        key={t.id}
+                                        className={`btn btn-small ${walkType === t.id ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setWalkType(t.id)}
+                                    >
+                                        {t.icon} {t.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="card" style={{ marginTop: '0.75rem' }}>
+                            <h3 style={{ marginBottom: '0.5rem' }}>Заметки</h3>
+                            <textarea 
+                                className="journal-textarea" 
+                                style={{ minHeight: '80px' }}
+                                placeholder="Что заметили? Как себя чувствуете?"
+                                value={walkNotes}
+                                onChange={e => setWalkNotes(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                );
+            }
+            
+            // Активная прогулка
+            if (activeWalk) {
+                return (
+                    <div className="fade-in" style={{ textAlign: 'center', padding: '1rem' }}>
+                        <h1>🚶 Прогулка</h1>
+                        
+                        <div style={{ 
+                            fontSize: '3.5rem', 
+                            fontWeight: 'bold', 
+                            color: 'var(--amber)', 
+                            margin: '2rem 0',
+                            fontFamily: 'monospace'
+                        }}>
+                            {formatTime(walkTimer)}
+                        </div>
+                        
+                        <div className="card" style={{ background: '#F0FDF4', textAlign: 'left', marginBottom: '1rem' }}>
+                            <p style={{ fontSize: '1rem' }}>{motivation || getMotivation('during')}</p>
+                        </div>
+                        
+                        {/* Health insight во время прогулки */}
+                        <div className="card" style={{ background: '#EFF6FF', textAlign: 'left', marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                <span style={{ fontSize: '1.25rem' }}>{healthInsight.icon}</span>
+                                <strong style={{ fontSize: '0.9rem' }}>{healthInsight.title}</strong>
+                            </div>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{healthInsight.fact}</p>
+                        </div>
+                        
+                        {walkTimer > 60 && walkTimer % 300 < 5 && (
+                            <div className="alert alert-info" style={{ textAlign: 'left' }}>
+                                <span>💡</span>
+                                <div>{getMotivation('during')}</div>
+                            </div>
+                        )}
+                        
+                        <div className="card" style={{ marginTop: '1rem' }}>
+                            <h3 style={{ marginBottom: '0.5rem' }}>Заметки</h3>
+                            <textarea 
+                                className="journal-textarea" 
+                                style={{ minHeight: '60px' }}
+                                placeholder="Что замечаете вокруг?"
+                                value={walkNotes}
+                                onChange={e => setWalkNotes(e.target.value)}
+                            />
+                        </div>
+                        
+                        <button 
+                            className="btn btn-primary btn-full" 
+                            style={{ marginTop: '1rem' }}
+                            onClick={finishWalk}
+                        >
+                            ✓ Завершить прогулку
+                        </button>
+                    </div>
+                );
+            }
+            
+            // Главный экран трекера
+            return (
+                <div className="fade-in">
+                    <h1>🚶 Трекер прогулок</h1>
+                    
+                    {/* Мотивация */}
+                    {motivation && (
+                        <div className="card" style={{ background: '#F0FDF4', marginTop: '0.75rem' }}>
+                            <p style={{ fontSize: '1rem', textAlign: 'center' }}>{motivation}</p>
+                        </div>
+                    )}
+                    
+                    {/* Напоминание если сегодня не гуляли */}
+                    {!stats.todayWalked && !motivation && (
+                        <div className="card" style={{ background: '#FEF3C7', marginTop: '0.75rem' }}>
+                            <p style={{ fontSize: '0.9rem' }}>{getMotivation('reminder')}</p>
+                        </div>
+                    )}
+                    
+                    {/* Статистика */}
+                    <div className="grid-2" style={{ marginTop: '1rem' }}>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.currentStreak}</div>
+                            <div className="stat-label">дней подряд 🔥</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.weekMinutes}</div>
+                            <div className="stat-label">минут за неделю</div>
+                        </div>
+                    </div>
+                    
+                    {/* Прогресс недели */}
+                    <div className="card" style={{ marginTop: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                            <span>Цель недели</span>
+                            <span>{stats.weekMinutes} / {goal.weeklyMinutes} мин</span>
+                        </div>
+                        <div className="progress-bar" style={{ height: '8px' }}>
+                            <div className="progress-fill" style={{ width: `${weekProgress}%` }}></div>
+                        </div>
+                        {weekProgress >= 100 && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--harmony-green)', marginTop: '0.5rem', textAlign: 'center' }}>
+                                🎉 Цель достигнута!
+                            </p>
+                        )}
+                    </div>
+                    
+                    {/* Health Insight */}
+                    <div className="card card-clickable" style={{ background: '#EFF6FF', marginTop: '0.75rem' }} onClick={() => setShowHealthInfo(true)}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1.5rem' }}>{healthInsight.icon}</span>
+                            <div style={{ flex: 1 }}>
+                                <strong style={{ fontSize: '0.9rem' }}>{healthInsight.title}</strong>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{healthInsight.benefit}</p>
+                            </div>
+                            <span style={{ color: 'var(--text-tertiary)' }}>→</span>
+                        </div>
+                    </div>
+                    
+                    {/* Корреляция с настроением */}
+                    {correlation?.moodImprovement && parseInt(correlation.moodImprovement) > 0 && (
+                        <div className="card card-clickable" style={{ background: '#F0FDF4', marginTop: '0.75rem' }} onClick={() => setShowAnalytics(true)}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div>
+                                    <strong>🧠 Прогулки улучшают настроение</strong>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                        на +{correlation.moodImprovement}% в дни с прогулками
+                                    </p>
+                                </div>
+                                <span style={{ color: 'var(--text-tertiary)' }}>→</span>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Рекомендация */}
+                    <div className="recommendation-card" style={{ marginTop: '0.75rem' }}>
+                        <div className="recommendation-title">💡 Рекомендация</div>
+                        <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>{recommendation.tip}</p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            Рекомендуемая длительность: {recommendation.duration} мин
+                        </p>
+                    </div>
+                    
+                    {/* Кнопки действий */}
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                        <button className="btn btn-primary" style={{ flex: 1 }} onClick={startWalk}>
+                            ▶️ Начать прогулку
+                        </button>
+                        <button className="btn btn-secondary" onClick={() => setShowAddWalk(true)}>
+                            ✏️
+                        </button>
+                    </div>
+                    
+                    {/* Быстрые действия */}
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+                        <button className="btn btn-secondary btn-small" style={{ flex: 1 }} onClick={() => setShowAnalytics(true)}>
+                            📊 Аналитика
+                        </button>
+                        <button className="btn btn-secondary btn-small" style={{ flex: 1 }} onClick={() => setShowHistory(true)}>
+                            📋 История
+                        </button>
+                    </div>
+                    
+                    {/* Достижения */}
+                    {achievements.length > 0 && (
+                        <>
+                            <h3 style={{ marginTop: '1.5rem', marginBottom: '0.5rem' }}>🏆 Достижения ({achievements.length}/{WALK_ACHIEVEMENTS.length})</h3>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                {achievements.map(a => (
+                                    <div 
+                                        key={a.id} 
+                                        style={{ 
+                                            padding: '0.5rem', 
+                                            borderRadius: '12px', 
+                                            background: 'var(--cream-warm)',
+                                            textAlign: 'center',
+                                            minWidth: '70px'
+                                        }}
+                                    >
+                                        <div style={{ fontSize: '1.5rem' }}>{a.icon}</div>
+                                        <div style={{ fontSize: '0.65rem' }}>{a.name}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                    
+                    {/* Общая статистика */}
+                    <div className="card" style={{ marginTop: '1rem' }}>
+                        <h3 style={{ marginBottom: '0.5rem' }}>📈 Всего</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '0.85rem' }}>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: 'bold', color: 'var(--amber)' }}>{stats.totalWalks}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>прогулок</div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: 'bold', color: 'var(--amber)' }}>{Math.round(stats.totalMinutes / 60)}ч</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>на воздухе</div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: 'bold', color: 'var(--amber)' }}>{stats.averageDuration}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>мин средняя</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function PracticePage({ practice, setPage }) {
+            const [step, setStep] = useState(-1);
+            if (!practice) return null;
+            
+            const completePractice = () => {
+                DB.addPractice(practice.id, practice.duration);
+                setStep(-2);
+            };
+            
+            if (step === -1) {
+                return (
+                    <div className="fade-in">
+                        <button className="btn btn-secondary btn-small" onClick={() => setPage('practices')} style={{ marginBottom: '1rem' }}>← Назад</button>
+                        <div style={{ textAlign: 'center', padding: '1.5rem', borderRadius: '16px', background: practice.bg, marginBottom: '1rem' }}>
+                            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{CATEGORIES.find(c => c.id === practice.category)?.icon}</div>
+                            <h1>{practice.title}</h1>
+                            <p style={{ marginTop: '0.25rem', opacity: 0.8 }}>⏱️ {practice.duration} мин</p>
+                        </div>
+                        <div className="card">
+                            <p>{practice.short}</p>
+                        </div>
+                        <button className="btn btn-primary btn-full" style={{ marginTop: '1rem' }} onClick={() => setStep(0)}>
+                            ▶️ Начать
+                        </button>
+                    </div>
+                );
+            }
+            
+            if (step === -2) {
+                return (
+                    <div style={{ textAlign: 'center', padding: '3rem 1rem' }} className="fade-in">
+                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✨</div>
+                        <h1>Завершено</h1>
+                        <p style={{ marginTop: '0.5rem', marginBottom: '1.5rem' }}>Благодарю за время с собой</p>
+                        <button className="btn btn-primary" onClick={() => setPage('home')}>Готово</button>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="fade-in">
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem' }}>
+                        <button className="btn btn-secondary btn-small" onClick={() => setPage('practices')}>←</button>
+                        <span style={{ marginLeft: 'auto', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
+                            {step + 1} / {practice.steps.length}
+                        </span>
+                    </div>
+                    <div className="progress-bar" style={{ marginBottom: '1rem' }}>
+                        <div className="progress-fill" style={{ width: `${((step + 1) / practice.steps.length) * 100}%` }}></div>
+                    </div>
+                    <div className="card" style={{ background: practice.bg }}>
+                        <div className="step-card">
+                            <div className="step-num">{step + 1}</div>
+                            <p className="step-text">{practice.steps[step]}</p>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+                        {step > 0 && <button className="btn btn-secondary" onClick={() => setStep(step - 1)}>← Назад</button>}
+                        <div style={{ flex: 1 }} />
+                        <button className="btn btn-primary" onClick={() => step < practice.steps.length - 1 ? setStep(step + 1) : completePractice()}>
+                            {step < practice.steps.length - 1 ? 'Далее →' : 'Завершить ✓'}
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function ChatPage() {
+            const [messages, setMessages] = useState([]);
+            const [input, setInput] = useState('');
+            
+            const send = () => {
+                if (!input.trim()) return;
+                setMessages([...messages, { role: 'user', text: input }]);
+                setInput('');
+                setTimeout(() => {
+                    setMessages(m => [...m, { role: 'ai', text: LOCAL_RESPONSES[Math.floor(Math.random() * LOCAL_RESPONSES.length)] }]);
+                }, 800);
+            };
+            
+            return (
+                <div className="chat-container fade-in">
+                    <div className="chat-messages">
+                        {messages.length === 0 && (
+                            <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+                                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🌤️</div>
+                                <h2>Привет!</h2>
+                                <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Как ты себя чувствуешь?</p>
+                                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    {['Мне сегодня непросто...', 'Хочу поделиться', 'Расскажи о практиках'].map(t => (
+                                        <button key={t} className="btn btn-secondary btn-small" onClick={() => setInput(t)}>{t}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {messages.map((m, i) => (
+                            <div key={i} className={`chat-msg ${m.role}`}>
+                                <div className={`chat-avatar ${m.role}`}>{m.role === 'user' ? '👤' : '☀️'}</div>
+                                <div className="chat-bubble">{m.text}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="chat-input-container">
+                        <input className="chat-input" placeholder="Напиши..." value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && send()} />
+                        <button className="btn btn-primary btn-small" onClick={send}>📤</button>
+                    </div>
+                </div>
+            );
+        }
+
+        function JournalPage() {
+            const [entries, setEntries] = useState(DB.getJournal());
+            const [writing, setWriting] = useState(false);
+            const [text, setText] = useState('');
+            const [state, setState] = useState('neutral');
+            
+            const save = () => {
+                if (!text.trim()) return;
+                DB.addJournalEntry({ content: text, state });
+                setEntries(DB.getJournal());
+                setText('');
+                setWriting(false);
+            };
+            
+            if (writing) {
+                return (
+                    <div className="fade-in">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                            <button className="btn btn-secondary btn-small" onClick={() => setWriting(false)}>Отмена</button>
+                            <button className="btn btn-primary btn-small" onClick={save} disabled={!text.trim()}>Сохранить</button>
+                        </div>
+                        <h3>Как на душе?</h3>
+                        <div className="soul-states">
+                            {SOUL_STATES.map(s => (
+                                <div key={s.id} className={`soul-chip ${state === s.id ? 'active' : ''}`} onClick={() => setState(s.id)}>
+                                    <span className="soul-emoji">{s.emoji}</span>
+                                    <span className="soul-label">{s.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <textarea className="journal-textarea" placeholder="Напиши свои мысли..." value={text} onChange={e => setText(e.target.value)} autoFocus style={{ marginTop: '1rem' }} />
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="fade-in">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h1>Дневник</h1>
+                        <button className="btn btn-primary btn-small" onClick={() => setWriting(true)}>✏️ Новая</button>
+                    </div>
+                    {entries.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📝</div>
+                            <p style={{ color: 'var(--text-secondary)' }}>Записей пока нет</p>
+                        </div>
+                    ) : entries.slice(0, 10).map(e => {
+                        const s = SOUL_STATES.find(st => st.id === e.state);
+                        const date = new Date(e.date);
+                        return (
+                            <div key={e.id} className="journal-entry">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
+                                    <span>{s?.emoji}</span>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                        {date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                                    </span>
+                                </div>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{e.content.slice(0, 100)}{e.content.length > 100 ? '...' : ''}</p>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        function ProfilePage() {
+            const [profile, setProfile] = useState(DB.getProfile());
+            const [name, setName] = useState(profile.name || '');
+            const [showPHQ, setShowPHQ] = useState(false);
+            const [showTemperamentTest, setShowTemperamentTest] = useState(false);
+            const [testAnswers, setTestAnswers] = useState(Array(12).fill(null));
+            const [testResult, setTestResult] = useState(null);
+            const [phqAnswers, setPhqAnswers] = useState(Array(9).fill(null));
+            const [phqResult, setPhqResult] = useState(null);
+            const [saunaDay, setSaunaDayState] = useState(DB.getSaunaDay());
+            const practiceHistory = DB.getPracticeHistory();
+            const journalEntries = DB.getJournal();
+            const saunaHistory = DB.getSaunaHistory();
+            const analysis = NATURAL_WISDOM.analyzeStateHistory(DB.getStateHistory());
+            
+            const DAY_NAMES = [
+                { id: 0, short: 'Вс', full: 'Воскресенье', icon: '☀️', oils: 'апельсин, ладан' },
+                { id: 1, short: 'Пн', full: 'Понедельник', icon: '🌙', oils: 'лаванда, эвкалипт' },
+                { id: 2, short: 'Вт', full: 'Вторник', icon: '♂️', oils: 'розмарин, можжевельник' },
+                { id: 3, short: 'Ср', full: 'Среда', icon: '☿️', oils: 'мята, лимон' },
+                { id: 4, short: 'Чт', full: 'Четверг', icon: '♃', oils: 'пихта, кедр' },
+                { id: 5, short: 'Пт', full: 'Пятница', icon: '♀️', oils: 'роза, герань' },
+                { id: 6, short: 'Сб', full: 'Суббота', icon: '♄', oils: 'кипарис, сосна' }
+            ];
+            
+            const saveProfile = (updates) => {
+                const newProfile = { ...profile, ...updates };
+                DB.setProfile(newProfile);
+                setProfile(newProfile);
+            };
+            
+            const saveSaunaDay = (day) => {
+                DB.setSaunaDay(day);
+                setSaunaDayState(day);
+            };
+            
+            // Расчёт результата теста темперамента
+            const calculateTemperamentResult = () => {
+                if (testAnswers.some(a => a === null)) return;
+                
+                const scores = { sanguine: 0, choleric: 0, melancholic: 0, phlegmatic: 0 };
+                testAnswers.forEach(type => { if (type) scores[type]++; });
+                
+                const total = Object.values(scores).reduce((a, b) => a + b, 0);
+                const percentages = {};
+                Object.keys(scores).forEach(key => {
+                    percentages[key] = total > 0 ? Math.round((scores[key] / total) * 100) : 0;
+                });
+                
+                const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+                const primary = sorted[0][0];
+                const secondary = sorted[1][1] > 1 ? sorted[1][0] : null;
+                
+                setTestResult({ scores, percentages, primary, secondary });
+                
+                // Сохранить результат в профиль
+                saveProfile({ temperament: primary, temperamentSecondary: secondary, temperamentScores: percentages });
+            };
+            
+            const temperaments = Object.values(NATURAL_WISDOM.temperaments);
+            
+            // Экран теста темперамента
+            if (showTemperamentTest) {
+                const currentQ = testAnswers.findIndex(a => a === null);
+                const progress = testAnswers.filter(a => a !== null).length;
+                
+                if (testResult) {
+                    const desc = TEMPERAMENT_TEST.getDescription(testResult.primary);
+                    const secondaryDesc = testResult.secondary ? TEMPERAMENT_TEST.getDescription(testResult.secondary) : null;
+                    
+                    return (
+                        <div className="fade-in">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                <button className="btn btn-secondary btn-small" onClick={() => { setShowTemperamentTest(false); setTestResult(null); setTestAnswers(Array(12).fill(null)); }}>← Закрыть</button>
+                            </div>
+                            
+                            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                                <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>{desc.icon}</div>
+                                <h1 style={{ color: desc.color }}>{desc.title}</h1>
+                                <p style={{ color: 'var(--text-secondary)' }}>Стихия: {desc.element}</p>
+                            </div>
+                            
+                            {/* Процентное соотношение */}
+                            <div className="card" style={{ marginBottom: '1rem' }}>
+                                <h3 style={{ marginBottom: '0.75rem' }}>Ваш темперамент</h3>
+                                {Object.entries(testResult.percentages).sort((a, b) => b[1] - a[1]).map(([type, pct]) => {
+                                    const info = TEMPERAMENT_TEST.getDescription(type);
+                                    return (
+                                        <div key={type} style={{ marginBottom: '0.5rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                                                <span>{info.icon} {info.title}</span>
+                                                <span style={{ fontWeight: 'bold' }}>{pct}%</span>
+                                            </div>
+                                            <div className="progress-bar" style={{ height: '8px' }}>
+                                                <div className="progress-fill" style={{ width: `${pct}%`, background: info.color }}></div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            
+                            {/* Сильные стороны */}
+                            <div className="card" style={{ marginBottom: '0.75rem', background: desc.color + '15' }}>
+                                <h3 style={{ marginBottom: '0.5rem' }}>💪 Сильные стороны</h3>
+                                {desc.strengths.map((s, i) => (
+                                    <p key={i} style={{ fontSize: '0.85rem', marginBottom: '0.25rem' }}>• {s}</p>
+                                ))}
+                            </div>
+                            
+                            {/* Зоны роста */}
+                            <div className="card" style={{ marginBottom: '0.75rem' }}>
+                                <h3 style={{ marginBottom: '0.5rem' }}>🌱 Зоны роста</h3>
+                                {desc.challenges.map((c, i) => (
+                                    <p key={i} style={{ fontSize: '0.85rem', marginBottom: '0.25rem' }}>• {c}</p>
+                                ))}
+                            </div>
+                            
+                            {/* Рекомендации */}
+                            <div className="recommendation-card" style={{ marginBottom: '0.75rem' }}>
+                                <div className="recommendation-title">💡 Рекомендация</div>
+                                <p style={{ fontSize: '0.9rem' }}>{desc.tip}</p>
+                            </div>
+                            
+                            {/* Практики */}
+                            <div className="card" style={{ marginBottom: '1rem' }}>
+                                <h3 style={{ marginBottom: '0.5rem' }}>✨ Рекомендуемые практики</h3>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                    {desc.practices.map((p, i) => (
+                                        <span key={i} className="btn btn-secondary btn-small">{p}</span>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {secondaryDesc && (
+                                <div className="alert alert-info">
+                                    <span>{secondaryDesc.icon}</span>
+                                    <div>
+                                        <strong>Вторичный темперамент: {secondaryDesc.title}</strong>
+                                        <p style={{ fontSize: '0.8rem' }}>Его черты также проявляются в вашем характере</p>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <button className="btn btn-primary btn-full" style={{ marginTop: '1rem' }} onClick={() => { setShowTemperamentTest(false); setTestResult(null); setTestAnswers(Array(12).fill(null)); }}>
+                                Готово
+                            </button>
+                        </div>
+                    );
+                }
+                
+                return (
+                    <div className="fade-in">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <button className="btn btn-secondary btn-small" onClick={() => { setShowTemperamentTest(false); setTestAnswers(Array(12).fill(null)); }}>← Отмена</button>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{progress}/12</span>
+                        </div>
+                        
+                        <div className="progress-bar" style={{ height: '6px', marginBottom: '1.5rem' }}>
+                            <div className="progress-fill" style={{ width: `${(progress / 12) * 100}%` }}></div>
+                        </div>
+                        
+                        <h2 style={{ marginBottom: '1.5rem' }}>Тест на темперамент</h2>
+                        
+                        {TEMPERAMENT_TEST.questions.map((q, qIdx) => (
+                            <div key={qIdx} className="card" style={{ marginBottom: '0.75rem', background: testAnswers[qIdx] ? '#F0FDF4' : 'white' }}>
+                                <p style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                                    {qIdx + 1}. {q.text}
+                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                    {q.answers.map((a, aIdx) => (
+                                        <button 
+                                            key={aIdx}
+                                            className={`btn btn-small ${testAnswers[qIdx] === a.type ? 'btn-primary' : 'btn-secondary'}`}
+                                            style={{ textAlign: 'left', whiteSpace: 'normal', height: 'auto', padding: '0.6rem 0.75rem' }}
+                                            onClick={() => { 
+                                                const newAnswers = [...testAnswers]; 
+                                                newAnswers[qIdx] = a.type; 
+                                                setTestAnswers(newAnswers); 
+                                            }}
+                                        >
+                                            {a.text}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                        
+                        <button 
+                            className="btn btn-primary btn-full" 
+                            style={{ marginTop: '1rem' }}
+                            onClick={calculateTemperamentResult}
+                            disabled={testAnswers.some(a => a === null)}
+                        >
+                            Показать результат
+                        </button>
+                    </div>
+                );
+            }
+            
+            const calculatePHQ = () => {
+                if (phqAnswers.some(a => a === null)) return;
+                const score = phqAnswers.reduce((sum, a) => sum + a, 0);
+                let severity, color, recommendation;
+                if (score <= 4) { severity = 'Минимальная'; color = '#10B981'; recommendation = 'Продолжайте практики для поддержания состояния'; }
+                else if (score <= 9) { severity = 'Лёгкая'; color = '#F59E0B'; recommendation = 'Рекомендуются ежедневные практики света и тепла'; }
+                else if (score <= 14) { severity = 'Умеренная'; color = '#F97316'; recommendation = 'Желательна консультация специалиста + практики'; }
+                else if (score <= 19) { severity = 'Умеренно-тяжёлая'; color = '#EF4444'; recommendation = 'Рекомендуется обратиться к специалисту'; }
+                else { severity = 'Тяжёлая'; color = '#DC2626'; recommendation = 'Необходима профессиональная помощь'; }
+                setPhqResult({ score, severity, color, recommendation });
+                DB.set('phq_history', [...(DB.get('phq_history', [])), { score, date: new Date().toISOString() }]);
+            };
+            
+            if (showPHQ) {
+                return (
+                    <div className="fade-in">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                            <button className="btn btn-secondary btn-small" onClick={() => { setShowPHQ(false); setPhqResult(null); setPhqAnswers(Array(9).fill(null)); }}>← Назад</button>
+                        </div>
+                        
+                        {!phqResult ? (
+                            <>
+                                <h1>Оценка состояния</h1>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                                    За последние 2 недели как часто вас беспокоило:
+                                </p>
+                                
+                                {PHQ9_QUESTIONS.map((q, idx) => (
+                                    <div key={idx} className="card" style={{ marginBottom: '0.5rem' }}>
+                                        <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>{idx + 1}. {q}</p>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                            {PHQ9_OPTIONS.map(opt => (
+                                                <button 
+                                                    key={opt.value}
+                                                    className={`btn btn-small ${phqAnswers[idx] === opt.value ? 'btn-primary' : 'btn-secondary'}`}
+                                                    onClick={() => { const n = [...phqAnswers]; n[idx] = opt.value; setPhqAnswers(n); }}
+                                                    style={{ fontSize: '0.7rem', padding: '6px 10px' }}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                                
+                                <button 
+                                    className="btn btn-primary btn-full" 
+                                    style={{ marginTop: '1rem' }}
+                                    onClick={calculatePHQ}
+                                    disabled={phqAnswers.some(a => a === null)}
+                                >
+                                    Показать результат
+                                </button>
+                            </>
+                        ) : (
+                            <div style={{ textAlign: 'center' }}>
+                                <h1>Результат PHQ-9</h1>
+                                <div style={{ fontSize: '3rem', fontWeight: 'bold', color: phqResult.color, margin: '1rem 0' }}>
+                                    {phqResult.score} / 27
+                                </div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: '600', color: phqResult.color, marginBottom: '1rem' }}>
+                                    {phqResult.severity} депрессия
+                                </div>
+                                <div className="card" style={{ textAlign: 'left' }}>
+                                    <p>{phqResult.recommendation}</p>
+                                </div>
+                                {phqResult.score >= 10 && (
+                                    <div className="alert alert-warning" style={{ marginTop: '1rem', textAlign: 'left' }}>
+                                        <span>📞</span>
+                                        <div>
+                                            <strong>Горячие линии помощи:</strong><br/>
+                                            8-800-2000-122 (бесплатно, 24/7)
+                                        </div>
+                                    </div>
+                                )}
+                                <button className="btn btn-primary btn-full" style={{ marginTop: '1rem' }} onClick={() => { setShowPHQ(false); setPhqResult(null); setPhqAnswers(Array(9).fill(null)); }}>
+                                    Готово
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="fade-in">
+                    <h1>Профиль</h1>
+                    
+                    <div className="grid-2" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                        <div className="stat-card">
+                            <div className="stat-value">{practiceHistory.length}</div>
+                            <div className="stat-label">практик</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{journalEntries.length}</div>
+                            <div className="stat-label">записей</div>
+                        </div>
+                    </div>
+                    
+                    {analysis?.trend && (
+                        <div className="card" style={{ marginBottom: '0.75rem' }}>
+                            <strong>Тренд за 7 дней:</strong>{' '}
+                            {analysis.trend === 'improving' ? '📈 Улучшение' : analysis.trend === 'declining' ? '📉 Снижение' : '➡️ Стабильно'}
+                        </div>
+                    )}
+                    
+                    {/* PHQ-9 */}
+                    <div className="card card-clickable" style={{ marginBottom: '0.75rem', background: '#F0F9FF' }} onClick={() => setShowPHQ(true)}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1.25rem' }}>📋</span>
+                            <div>
+                                <strong>Оценить состояние (PHQ-9)</strong>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Стандартизированный тест депрессии</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="card">
+                        <h3 style={{ marginBottom: '0.5rem' }}>Имя</h3>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Как тебя зовут?" style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid var(--earth-light)', fontSize: '0.9rem', fontFamily: 'inherit' }} />
+                            <button className="btn btn-primary btn-small" onClick={() => saveProfile({ name })}>✓</button>
+                        </div>
+                    </div>
+                    
+                    <div className="card" style={{ marginTop: '0.75rem' }}>
+                        <h3 style={{ marginBottom: '0.5rem' }}>Темперамент</h3>
+                        
+                        {/* Кнопка теста */}
+                        <div 
+                            className="card card-clickable" 
+                            style={{ background: '#EFF6FF', marginBottom: '0.75rem', padding: '0.75rem' }}
+                            onClick={() => setShowTemperamentTest(true)}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '1.5rem' }}>🧪</span>
+                                <div>
+                                    <strong>Пройти тест на темперамент</strong>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>12 вопросов • 3 минуты</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Или выбрать вручную */}
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.5rem', textAlign: 'center' }}>или выберите вручную:</p>
+                        
+                        <div className="grid-2">
+                            {temperaments.map(t => (
+                                <div key={t.id} className={`temperament-card ${profile.temperament === t.id ? 'active' : ''}`} style={{ background: t.color + '15' }} onClick={() => saveProfile({ temperament: t.id })}>
+                                    <div className="temperament-icon">{t.icon}</div>
+                                    <div className="temperament-name">{t.name}</div>
+                                    <div className="temperament-element">{t.element}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    {/* Горячие линии */}
+                    <div className="card" style={{ marginTop: '0.75rem', background: '#FEF2F2' }}>
+                        <h3 style={{ marginBottom: '0.5rem' }}>📞 Экстренная помощь</h3>
+                        {CRISIS_LINES.map((line, idx) => (
+                            <div key={idx} style={{ marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: idx < CRISIS_LINES.length - 1 ? '1px solid var(--earth-light)' : 'none' }}>
+                                <strong style={{ fontSize: '0.85rem' }}>{line.name}</strong>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <a href={`tel:${line.phone}`} style={{ color: '#DC2626', fontWeight: '600', fontSize: '0.9rem' }}>{line.phone}</a>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{line.note}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {/* Планировщик бани */}
+                    <div className="card" style={{ marginTop: '0.75rem', background: '#FEF3C7' }}>
+                        <h3 style={{ marginBottom: '0.5rem' }}>🧖 День бани</h3>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                            Выберите день для еженедельного посещения бани. Мы напомним и подберём масла.
+                        </p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                            {DAY_NAMES.map(day => (
+                                <div 
+                                    key={day.id}
+                                    onClick={() => saveSaunaDay(saunaDay === day.id ? null : day.id)}
+                                    style={{ 
+                                        padding: '0.5rem 0.75rem',
+                                        borderRadius: '10px',
+                                        background: saunaDay === day.id ? 'var(--amber)' : 'var(--cream-light)',
+                                        color: saunaDay === day.id ? 'var(--text-on-dark)' : 'var(--text-primary)',
+                                        cursor: 'pointer',
+                                        textAlign: 'center',
+                                        border: saunaDay === day.id ? 'none' : '1px solid var(--earth-light)',
+                                        minWidth: '42px'
+                                    }}
+                                >
+                                    <div style={{ fontSize: '1rem' }}>{day.icon}</div>
+                                    <div style={{ fontSize: '0.7rem', fontWeight: '600' }}>{day.short}</div>
+                                </div>
+                            ))}
+                        </div>
+                        {saunaDay !== null && (
+                            <div style={{ marginTop: '0.75rem', padding: '0.5rem', background: 'rgba(255,255,255,0.7)', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '0.85rem' }}>
+                                    <strong>{DAY_NAMES[saunaDay].full}</strong>: {DAY_NAMES[saunaDay].oils}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="alert alert-warning" style={{ marginTop: '0.75rem' }}>
+                        <span>⚠️</span>
+                        <div style={{ fontSize: '0.8rem' }}>Это приложение не заменяет профессиональную помощь.</div>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [page, setPage] = useState('home');
+            const [practice, setPractice] = useState(null);
+            
+            let content;
+            if (page === 'home') content = <HomePage setPage={setPage} setPractice={setPractice} />;
+            else if (page === 'day') content = <DayPage setPage={setPage} setPractice={setPractice} />;
+            else if (page === 'walks') content = <WalkTrackerPage setPage={setPage} setPractice={setPractice} />;
+            else if (page === 'practices') content = <PracticesPage setPage={setPage} setPractice={setPractice} />;
+            else if (page === 'practice') content = <PracticePage practice={practice} setPage={setPage} />;
+            else if (page === 'chat') content = <ChatPage />;
+            else if (page === 'journal') content = <JournalPage />;
+            else if (page === 'profile') content = <ProfilePage />;
+            
+            return (
+                <div className="app">
+                    <main className="main">{content}</main>
+                    <BottomNav page={page} setPage={setPage} />
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
