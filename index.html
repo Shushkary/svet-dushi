@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23FDF8F3' width='100' height='100' rx='20'/><circle cx='50' cy='45' r='25' fill='%23FCD34D'/><circle cx='50' cy='45' r='18' fill='%23FBBF24'/></svg>">
     <title>Свет Души</title>
     <script>
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && location.protocol !== 'file:') {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
                     .then(reg => console.log('SW registered'))
@@ -354,7 +354,12 @@
         /* Переопределение всех inline background в тёмной теме */
         .dark-theme [style*="background:"],
         .dark-theme [style*="background :"],
-        .dark-theme div[style*="background"] {
+        .dark-theme div[style*="background"],
+        .dark-theme [style*="background: #F"],
+        .dark-theme [style*="background: #E"],
+        .dark-theme [style*="background: #D"],
+        .dark-theme [style*="background: linear"],
+        .dark-theme [style*="background: rgb"] {
             background: var(--bg-card) !important;
             color: var(--text-primary) !important;
         }
@@ -363,8 +368,39 @@
         .dark-theme [style*="background"] h2,
         .dark-theme [style*="background"] h3,
         .dark-theme [style*="background"] p,
-        .dark-theme [style*="background"] span {
+        .dark-theme [style*="background"] span,
+        .dark-theme [style*="background"] strong,
+        .dark-theme [style*="background"] div {
             color: var(--text-primary) !important;
+        }
+        
+        /* Номер шага в практике */
+        .dark-theme .step-number,
+        .dark-theme [style*="background: var(--golden)"],
+        .dark-theme [style*="background: var(--amber)"] {
+            background: var(--amber) !important;
+            color: #1A1816 !important;
+        }
+        
+        /* Карточка шага практики в тёмной теме */
+        .dark-theme .step-card {
+            background: rgba(42, 40, 38, 0.9) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        .dark-theme .step-num {
+            background: linear-gradient(135deg, var(--amber), var(--golden-light)) !important;
+            color: #1A1816 !important;
+        }
+        
+        .dark-theme .step-text {
+            color: var(--text-primary) !important;
+        }
+        
+        /* Карточка с любым inline background в тёмной теме */
+        .dark-theme .card[style] {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--earth-light) !important;
         }
         
         /* Рекомендации и алерты */
