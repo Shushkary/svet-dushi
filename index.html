@@ -320,7 +320,7 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         // ═══════════════════════════════════════════════════════════════
         // БАЗА ДАННЫХ
@@ -967,8 +967,20 @@
             const greeting = hour < 6 ? 'Доброй ночи' : hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
             const planetaryDay = NATURAL_WISDOM.getPlanetaryDay();
             const rhythm = NATURAL_WISDOM.getCurrentRhythm();
+            const soulStatesRef = useRef(null);
             
             useEffect(() => { DB.addState(state); }, [state]);
+            
+            // Скролл к "Спокойно" при загрузке
+            useEffect(() => {
+                if (soulStatesRef.current) {
+                    const neutralIndex = SOUL_STATES.findIndex(s => s.id === 'neutral');
+                    const chipWidth = 85; // примерная ширина чипа
+                    const containerWidth = soulStatesRef.current.offsetWidth;
+                    const scrollPos = (neutralIndex * chipWidth) - (containerWidth / 2) + (chipWidth / 2);
+                    soulStatesRef.current.scrollLeft = Math.max(0, scrollPos);
+                }
+            }, []);
             
             // Рекомендованная практика
             const stateRecs = {
@@ -995,7 +1007,7 @@
                     </div>
 
                     <h3>Как на душе?</h3>
-                    <div className="soul-states">
+                    <div className="soul-states" ref={soulStatesRef}>
                         {SOUL_STATES.map(s => (
                             <div key={s.id} className={`soul-chip ${state === s.id ? 'active' : ''}`} onClick={() => setState(s.id)}>
                                 <span className="soul-emoji">{s.emoji}</span>
