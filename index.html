@@ -51,6 +51,77 @@
             --shadow-sm: 0 1px 2px rgba(45, 37, 32, 0.05);
             --shadow-md: 0 4px 12px rgba(45, 37, 32, 0.08);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --bg-primary: #FFFBF5;
+            --bg-card: white;
+            --bg-nav: rgba(255, 251, 245, 0.95);
+        }
+        
+        .dark-theme {
+            --golden-light: #D4A030;
+            --golden-soft: #B8922A;
+            --amber: #C9922F;
+            --amber-warm: #A67825;
+            --peach-glow: #4A3D35;
+            --peach-soft: #3D3530;
+            --cream-light: #1A1815;
+            --cream-warm: #252220;
+            --sand: #2D2A25;
+            --earth-light: #3A3530;
+            --text-primary: #E8E4E0;
+            --text-secondary: #B5AFA8;
+            --text-tertiary: #7A756F;
+            --text-on-dark: #1A1815;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --bg-primary: #1A1815;
+            --bg-card: #252220;
+            --bg-nav: rgba(26, 24, 21, 0.95);
+        }
+        
+        .dark-theme body {
+            background: var(--bg-primary);
+        }
+        
+        .dark-theme .card {
+            background: var(--bg-card);
+            border-color: var(--earth-light);
+        }
+        
+        .dark-theme .bottom-nav {
+            background: var(--bg-nav);
+            border-top-color: var(--earth-light);
+        }
+        
+        .dark-theme .btn-secondary {
+            background: var(--sand);
+            color: var(--text-primary);
+        }
+        
+        .dark-theme input, .dark-theme textarea, .dark-theme select {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--earth-light);
+        }
+        
+        .dark-theme .journal-textarea {
+            background: var(--sand);
+            color: var(--text-primary);
+        }
+        
+        .dark-theme .quote-card {
+            background: linear-gradient(135deg, var(--twilight-deep), var(--night-sky));
+        }
+        
+        .dark-theme .recommendation-card {
+            background: linear-gradient(135deg, var(--sand), var(--earth-light));
+        }
+        
+        .dark-theme .soul-chip {
+            background: var(--sand);
+        }
+        
+        .dark-theme .soul-chip.active {
+            background: var(--amber);
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -1277,6 +1348,17 @@
             const rhythm = NATURAL_WISDOM.getCurrentRhythm();
             const soulStatesRef = useRef(null);
             
+            // Проверка заполненности профиля
+            const isProfileComplete = profile.name && profile.temperament;
+            
+            // Применение темной темы при загрузке
+            useEffect(() => {
+                const darkTheme = DB.get('dark_theme', false);
+                if (darkTheme) {
+                    document.documentElement.classList.add('dark-theme');
+                }
+            }, []);
+            
             useEffect(() => { DB.addState(state); }, [state]);
             
             // Скролл к "Спокойно" при загрузке
@@ -1307,6 +1389,35 @@
                 <div className="fade-in">
                     <h1 className="greeting">{greeting}{profile.name ? `, ${profile.name}` : ''} ✨</h1>
                     <p className="greeting-sub">{rhythm.name} — {rhythm.quality}</p>
+                    
+                    {/* Предложение заполнить профиль */}
+                    {!isProfileComplete && (
+                        <div 
+                            className="card card-clickable" 
+                            style={{ 
+                                background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)', 
+                                marginBottom: '1rem',
+                                border: '2px solid var(--amber)'
+                            }}
+                            onClick={() => setPage('profile')}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <span style={{ fontSize: '2rem' }}>👤</span>
+                                <div style={{ flex: 1 }}>
+                                    <strong>Заполните профиль</strong>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                                        {!profile.name && !profile.temperament 
+                                            ? 'Укажите имя и пройдите тест на темперамент для персональных рекомендаций'
+                                            : !profile.name 
+                                                ? 'Укажите ваше имя'
+                                                : 'Пройдите тест на темперамент для персональных рекомендаций'
+                                        }
+                                    </p>
+                                </div>
+                                <span style={{ fontSize: '1.25rem' }}>→</span>
+                            </div>
+                        </div>
+                    )}
                     
                     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                         <span className="planet-badge" style={{ background: planetaryDay.color + '20', color: planetaryDay.color }}>
@@ -2648,10 +2759,26 @@
             const [phqAnswers, setPhqAnswers] = useState(Array(9).fill(null));
             const [phqResult, setPhqResult] = useState(null);
             const [saunaDay, setSaunaDayState] = useState(DB.getSaunaDay());
+            const [darkTheme, setDarkTheme] = useState(DB.get('dark_theme', false));
             const practiceHistory = DB.getPracticeHistory();
             const journalEntries = DB.getJournal();
             const saunaHistory = DB.getSaunaHistory();
             const analysis = NATURAL_WISDOM.analyzeStateHistory(DB.getStateHistory());
+            
+            // Применение темной темы
+            useEffect(() => {
+                if (darkTheme) {
+                    document.documentElement.classList.add('dark-theme');
+                } else {
+                    document.documentElement.classList.remove('dark-theme');
+                }
+            }, [darkTheme]);
+            
+            const toggleDarkTheme = () => {
+                const newValue = !darkTheme;
+                setDarkTheme(newValue);
+                DB.set('dark_theme', newValue);
+            };
             
             const DAY_NAMES = [
                 { id: 0, short: 'Вс', full: 'Воскресенье', icon: '☀️', oils: 'апельсин, ладан' },
@@ -2926,6 +3053,51 @@
             return (
                 <div className="fade-in">
                     <h1>Профиль</h1>
+                    
+                    {/* Тема оформления */}
+                    <div 
+                        className="card" 
+                        style={{ 
+                            marginTop: '0.75rem', 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1.25rem' }}>{darkTheme ? '🌙' : '☀️'}</span>
+                            <div>
+                                <strong style={{ fontSize: '0.9rem' }}>Тема оформления</strong>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                    {darkTheme ? 'Тёмная тема' : 'Светлая тема'}
+                                </p>
+                            </div>
+                        </div>
+                        <div 
+                            onClick={toggleDarkTheme}
+                            style={{ 
+                                width: '50px', 
+                                height: '28px', 
+                                borderRadius: '14px', 
+                                background: darkTheme ? 'var(--twilight-deep)' : '#ccc',
+                                position: 'relative',
+                                cursor: 'pointer',
+                                transition: 'background 0.3s'
+                            }}
+                        >
+                            <div style={{
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '12px',
+                                background: darkTheme ? '#FCD34D' : 'white',
+                                position: 'absolute',
+                                top: '2px',
+                                left: darkTheme ? '24px' : '2px',
+                                transition: 'left 0.3s, background 0.3s',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                            }} />
+                        </div>
+                    </div>
                     
                     <div className="grid-2" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
                         <div className="stat-card">
@@ -3468,7 +3640,7 @@
         }
         
         function App() {
-            const [page, setPage] = useState('profile');
+            const [page, setPage] = useState('home');
             const [practice, setPractice] = useState(null);
             
             let content;
