@@ -57,31 +57,32 @@
         }
         
         .dark-theme {
-            --golden-light: #C9A227;
-            --golden-soft: #A68A1F;
-            --amber: #B8860B;
-            --amber-warm: #8B6914;
-            --peach-glow: #3D3A35;
-            --peach-soft: #2D2B28;
-            --cream-light: #1E1C1A;
-            --cream-warm: #262422;
+            --golden-light: #D4A84B;
+            --golden-soft: #B89A40;
+            --amber: #C9922F;
+            --amber-warm: #A67825;
+            --peach-glow: #2D2A27;
+            --peach-soft: #262422;
+            --cream-light: #1A1816;
+            --cream-warm: #222220;
             --sand: #2A2826;
-            --earth-light: #333130;
-            --text-primary: #D4D0CA;
-            --text-secondary: #9A958E;
-            --text-tertiary: #6A665F;
-            --text-on-dark: #1A1815;
+            --earth-light: #3A3835;
+            --text-primary: #E5E2DC;
+            --text-secondary: #A5A099;
+            --text-tertiary: #706B65;
+            --text-on-dark: #E5E2DC;
             --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
             --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
             --bg-primary: #1A1816;
             --bg-card: #242220;
-            --bg-nav: rgba(30, 28, 26, 0.98);
+            --bg-nav: rgba(26, 24, 22, 0.98);
             --harmony-green: #5A8A65;
             --harmony-light: #4A7A55;
-            --twilight-blue: #3A5A85;
+            --twilight-blue: #4A6A95;
             --twilight-deep: #2A4A6A;
-            --violet: #5A4A7A;
-            --violet-soft: #6A5A8A;
+            --violet: #6A5A8A;
+            --violet-soft: #7A6A9A;
+            --rose-aurora: #8A5A5A;
         }
         
         .dark-theme body {
@@ -90,17 +91,22 @@
         }
         
         .dark-theme .card {
-            background: var(--bg-card);
-            border: 1px solid var(--earth-light);
+            background: var(--bg-card) !important;
+            border: 1px solid var(--earth-light) !important;
+            color: var(--text-primary) !important;
         }
         
         .dark-theme .card-clickable:hover {
-            background: var(--sand);
+            background: #2D2B28 !important;
         }
         
         .dark-theme .bottom-nav {
             background: var(--bg-nav);
             border-top: 1px solid var(--earth-light);
+        }
+        
+        .dark-theme .nav-item {
+            color: var(--text-secondary);
         }
         
         .dark-theme .nav-item.active {
@@ -134,18 +140,35 @@
         }
         
         .dark-theme .quote-card {
-            background: linear-gradient(135deg, var(--twilight-deep), #1A2A3A);
+            background: linear-gradient(135deg, #2A3545, #1A2535) !important;
             border: 1px solid var(--twilight-blue);
+            color: var(--text-primary) !important;
+        }
+        
+        .dark-theme .quote-card *,
+        .dark-theme .quote-text,
+        .dark-theme .quote-author {
+            color: #E5E2DC !important;
         }
         
         .dark-theme .recommendation-card {
-            background: linear-gradient(135deg, var(--sand), var(--bg-card));
+            background: var(--bg-card) !important;
             border: 1px solid var(--earth-light);
+            color: var(--text-primary) !important;
+        }
+        
+        .dark-theme .recommendation-card * {
+            color: var(--text-primary) !important;
+        }
+        
+        .dark-theme .recommendation-title {
+            color: var(--golden-light) !important;
         }
         
         .dark-theme .soul-chip {
             background: var(--sand);
             border: 1px solid var(--earth-light);
+            color: var(--text-primary);
         }
         
         .dark-theme .soul-chip.active {
@@ -157,10 +180,11 @@
         .dark-theme .alert {
             background: var(--sand);
             border: 1px solid var(--earth-light);
+            color: var(--text-primary);
         }
         
         .dark-theme .alert-info {
-            background: rgba(58, 90, 133, 0.2);
+            background: rgba(74, 106, 149, 0.2);
             border-color: var(--twilight-blue);
         }
         
@@ -176,9 +200,14 @@
             color: var(--text-primary);
         }
         
+        .dark-theme p, .dark-theme span, .dark-theme div {
+            color: inherit;
+        }
+        
         .dark-theme .category-chip {
             background: var(--sand);
             border: 1px solid var(--earth-light);
+            color: var(--text-primary);
         }
         
         .dark-theme .category-chip.active {
@@ -186,30 +215,160 @@
             color: #1A1816;
         }
         
-        /* Специальные карточки в тёмной теме */
-        .dark-theme [style*="background: #FEF3C7"],
-        .dark-theme [style*="background: linear-gradient(135deg, #FEF3C7"] {
-            background: var(--sand) !important;
-            border: 1px solid var(--amber) !important;
-        }
-        
-        .dark-theme [style*="background: #F0FDF4"] {
-            background: rgba(90, 138, 101, 0.15) !important;
-            border: 1px solid var(--harmony-green) !important;
-        }
-        
-        .dark-theme [style*="background: #FEF2F2"] {
-            background: rgba(180, 80, 80, 0.15) !important;
-            border: 1px solid #8B4A4A !important;
-        }
-        
-        .dark-theme [style*="background: #EFF6FF"] {
-            background: rgba(58, 90, 133, 0.15) !important;
-            border: 1px solid var(--twilight-blue) !important;
-        }
-        
-        .dark-theme [style*="background: white"] {
+        /* Практики - единый тёмный стиль */
+        .dark-theme .card[style*="background: #FEF"],
+        .dark-theme .card[style*="background: #F0F"],
+        .dark-theme .card[style*="background: #EFF"],
+        .dark-theme .card[style*="background: #FCE"],
+        .dark-theme .card[style*="background: #FFF"],
+        .dark-theme .card[style*="background: #E0"],
+        .dark-theme .card[style*="background: #D1"],
+        .dark-theme .card[style*="background: linear-gradient"] {
             background: var(--bg-card) !important;
+            border: 1px solid var(--earth-light) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        .dark-theme .card[style*="background"] * {
+            color: var(--text-primary) !important;
+        }
+        
+        .dark-theme .card[style*="background"] .btn-primary {
+            color: #1A1816 !important;
+        }
+        
+        /* Цветовые акценты для карточек практик */
+        .dark-theme .card[style*="background: #FEF3C7"],
+        .dark-theme .card[style*="background: #FDE68A"] {
+            background: #2D2820 !important;
+            border-left: 3px solid var(--golden-light) !important;
+        }
+        
+        .dark-theme .card[style*="background: #F0FDF4"],
+        .dark-theme .card[style*="background: #D1FAE5"] {
+            background: #202D22 !important;
+            border-left: 3px solid var(--harmony-green) !important;
+        }
+        
+        .dark-theme .card[style*="background: #FEF2F2"],
+        .dark-theme .card[style*="background: #FECACA"],
+        .dark-theme .card[style*="background: #FEE2E2"] {
+            background: #2D2020 !important;
+            border-left: 3px solid var(--rose-aurora) !important;
+        }
+        
+        .dark-theme .card[style*="background: #EFF6FF"],
+        .dark-theme .card[style*="background: #DBEAFE"] {
+            background: #202530 !important;
+            border-left: 3px solid var(--twilight-blue) !important;
+        }
+        
+        .dark-theme .card[style*="background: #F3E8FF"],
+        .dark-theme .card[style*="background: #E9D5FF"],
+        .dark-theme .card[style*="background: #EDE9FE"] {
+            background: #252030 !important;
+            border-left: 3px solid var(--violet) !important;
+        }
+        
+        .dark-theme .card[style*="background: #FFEDD5"],
+        .dark-theme .card[style*="background: #FED7AA"] {
+            background: #2D2520 !important;
+            border-left: 3px solid #B8860B !important;
+        }
+        
+        /* Все inline стили с белым фоном */
+        .dark-theme [style*="background: white"],
+        .dark-theme [style*="background: #FFF"],
+        .dark-theme [style*="background:#FFF"] {
+            background: var(--bg-card) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        /* Теги/чипы */
+        .dark-theme [style*="border-radius: 15px"],
+        .dark-theme [style*="border-radius: 10px"] {
+            background: var(--sand) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--earth-light) !important;
+        }
+        
+        /* Ссылки телефонов */
+        .dark-theme a {
+            color: var(--golden-light);
+        }
+        
+        /* Подсказки и мелкий текст */
+        .dark-theme [style*="color: var(--text-secondary)"],
+        .dark-theme [style*="color: var(--text-tertiary)"] {
+            color: var(--text-secondary) !important;
+        }
+        
+        /* Кнопки в карточках */
+        .dark-theme .btn-small {
+            background: var(--sand);
+            color: var(--text-primary);
+            border: 1px solid var(--earth-light);
+        }
+        
+        .dark-theme .btn-small.btn-primary {
+            background: var(--amber);
+            color: #1A1816;
+            border: none;
+        }
+        
+        /* Исправление цитаты на главной */
+        .dark-theme .quote-card,
+        .dark-theme [class*="quote"] {
+            background: linear-gradient(135deg, #2A3040, #1A2535) !important;
+            color: #E5E2DC !important;
+        }
+        
+        /* Универсальный переопределитель для тёмной темы */
+        .dark-theme .card {
+            background: var(--bg-card) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--earth-light) !important;
+        }
+        
+        .dark-theme .card h1,
+        .dark-theme .card h2,
+        .dark-theme .card h3,
+        .dark-theme .card h4,
+        .dark-theme .card p,
+        .dark-theme .card span,
+        .dark-theme .card div,
+        .dark-theme .card strong,
+        .dark-theme .card label {
+            color: var(--text-primary) !important;
+        }
+        
+        .dark-theme .card .btn-primary {
+            color: #1A1816 !important;
+        }
+        
+        /* Практики - цветовой акцент слева по категории */
+        .dark-theme .card-clickable[style] {
+            border-left: 3px solid var(--golden-light) !important;
+        }
+        
+        /* Рекомендации и алерты */
+        .dark-theme .recommendation-card {
+            background: var(--bg-card) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--earth-light) !important;
+        }
+        
+        .dark-theme .recommendation-card *,
+        .dark-theme .recommendation-title {
+            color: var(--text-primary) !important;
+        }
+        
+        /* Исправление полей ввода имени */
+        .dark-theme input[type="text"],
+        .dark-theme input:not([type]) {
+            background: var(--sand) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--earth-light) !important;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
